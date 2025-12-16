@@ -1,0 +1,182 @@
+// import { useState, useEffect } from 'react';
+// import { supabase, DecisionLog } from '../lib/supabase';
+
+// export function useDecisionLogs(limit: number = 50) {
+//   const [decisionLogs, setDecisionLogs] = useState<DecisionLog[]>([]);
+//   const [loading, setLoading] = useState(true);
+//   const [error, setError] = useState<string | null>(null);
+
+//   const fetchDecisionLogs = async () => {
+//     try {
+//       setLoading(true);
+//       const { data, error } = await supabase
+//         .from('decision_logs')
+//         .select('*')
+//         .order('created_at', { ascending: false })
+//         .limit(limit);
+
+//       if (error) throw error;
+//       setDecisionLogs(data || []);
+//       setError(null);
+//     } catch (err: any) {
+//       setError(err.message);
+//     } finally {
+//       setLoading(false);
+//     }
+//   };
+
+//   useEffect(() => {
+//     fetchDecisionLogs();
+//   }, [limit]);
+
+//   return {
+//     decisionLogs,
+//     loading,
+//     error,
+//     fetchDecisionLogs,
+//   };
+// }
+
+// export function useDecisionStats() {
+//   const [stats, setStats] = useState({
+//     totalDecisions: 0,
+//     matchedDecisions: 0,
+//     avgExecutionTime: 0,
+//     decisionsToday: 0,
+//   });
+//   const [loading, setLoading] = useState(true);
+
+//   const fetchStats = async () => {
+//     try {
+//       setLoading(true);
+
+//       const { data: allLogs } = await supabase
+//         .from('decision_logs')
+//         .select('matched, execution_time_ms, created_at');
+
+//       if (allLogs) {
+//         const matched = allLogs.filter((log) => log.matched).length;
+//         const avgTime =
+//           allLogs.reduce((sum, log) => sum + (log.execution_time_ms || 0), 0) /
+//           (allLogs.length || 1);
+
+//         const today = new Date();
+//         today.setHours(0, 0, 0, 0);
+//         const todayLogs = allLogs.filter(
+//           (log) => new Date(log.created_at) >= today
+//         );
+
+//         setStats({
+//           totalDecisions: allLogs.length,
+//           matchedDecisions: matched,
+//           avgExecutionTime: Math.round(avgTime),
+//           decisionsToday: todayLogs.length,
+//         });
+//       }
+//     } catch (err) {
+//       console.error('Error fetching stats:', err);
+//     } finally {
+//       setLoading(false);
+//     }
+//   };
+
+//   useEffect(() => {
+//     fetchStats();
+//   }, []);
+
+//   return { stats, loading, fetchStats };
+// }
+
+// // import { useEffect, useState } from "react";
+// // import { get } from "../lib/apiClient";
+
+// // /**
+// //  * Fetch decision logs
+// //  */
+// // export function useDecisionLogs() {
+// //   const [logs, setLogs] = useState<any[]>([]);
+// //   const [loading, setLoading] = useState(true);
+
+// //   useEffect(() => {
+// //     get<any[]>("/logs")
+// //       .then(setLogs)
+// //       .catch(console.error)
+// //       .finally(() => setLoading(false));
+// //   }, []);
+
+// //   return { logs, loading };
+// // }
+
+import { useEffect, useState } from "react";
+import { get } from "../lib/apiClient";
+
+export type DecisionLog = {
+  id: number;
+  decision: string;
+  matched: boolean;
+  executionTimeMs: number;
+  createdAt: string;
+};
+
+export function useDecisionLogs(limit: number = 50) {
+  const [decisionLogs, setDecisionLogs] = useState<DecisionLog[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  const fetchDecisionLogs = async () => {
+    try {
+      setLoading(true);
+      const data = await get<DecisionLog[]>(`/logs?limit=${limit}`);
+      setDecisionLogs(data);
+      setError(null);
+    } catch (err: any) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchDecisionLogs();
+  }, [limit]);
+
+  return { decisionLogs, loading, error, fetchDecisionLogs };
+}
+
+/* 🔹 Analytics hook used by Analytics.tsx */
+export function useDecisionStats() {
+  const [stats, setStats] = useState({
+    totalDecisions: 0,
+    matchedDecisions: 0,
+    avgExecutionTime: 0,
+    decisionsToday: 0,
+  });
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    get<DecisionLog[]>("/logs")
+      .then((logs) => {
+        const matched = logs.filter((l) => l.matched).length;
+        const avg =
+          logs.reduce((s, l) => s + (l.executionTimeMs || 0), 0) /
+          (logs.length || 1);
+
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+
+        const todayCount = logs.filter(
+          (l) => new Date(l.createdAt) >= today
+        ).length;
+
+        setStats({
+          totalDecisions: logs.length,
+          matchedDecisions: matched,
+          avgExecutionTime: Math.round(avg),
+          decisionsToday: todayCount,
+        });
+      })
+      .finally(() => setLoading(false));
+  }, []);
+
+  return { stats, loading };
+}

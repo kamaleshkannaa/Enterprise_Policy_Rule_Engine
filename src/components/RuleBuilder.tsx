@@ -1,0 +1,848 @@
+// import { useState, useEffect } from 'react';
+// import { Save, X, Plus, Trash2 } from 'lucide-react';
+// import { useRuleDetails } from '../hooks/useRules';
+// import { useRuleGroups } from '../hooks/useRuleGroups';
+// import { post, put } from '../lib/apiClient';
+// import { OPERATORS, ACTION_TYPES, formatOperatorLabel, formatActionTypeLabel } from '../lib/ruleEngine';
+
+// interface RuleBuilderProps {
+//   ruleId: string | null;
+//   onSave: () => void;
+//   onCancel: () => void;
+// }
+
+// export default function RuleBuilder({ ruleId, onSave, onCancel }: RuleBuilderProps) {
+//   const { rule, conditions, actions, loading, addCondition, updateCondition, deleteCondition, addAction, updateAction, deleteAction } = useRuleDetails(ruleId);
+//   const { ruleGroups } = useRuleGroups();
+
+//   const [formData, setFormData] = useState({
+//     name: '',
+//     description: '',
+//     rule_group_id: '',
+//     priority: 0,
+//     is_active: true,
+//   });
+
+//   const [newCondition, setNewCondition] = useState({
+//     field_name: '',
+//     operator: OPERATORS.EQUALS,
+//     value: '',
+//     logical_operator: 'AND',
+//   });
+
+//   const [newAction, setNewAction] = useState({
+//     action_type: ACTION_TYPES.APPROVE,
+//     action_config: '{}',
+//   });
+
+//   const [saving, setSaving] = useState(false);
+
+//   useEffect(() => {
+//     if (rule) {
+//       setFormData({
+//         name: rule.name,
+//         description: rule.description || '',
+//         rule_group_id: rule.rule_group_id || '',
+//         priority: rule.priority,
+//         is_active: rule.is_active,
+//       });
+//     } else {
+//       setFormData({
+//         name: '',
+//         description: '',
+//         rule_group_id: '',
+//         priority: 0,
+//         is_active: true,
+//       });
+//     }
+//   }, [rule]);
+
+//   const handleSaveRule = async () => {
+//   try {
+//     setSaving(true);
+
+//     if (!ruleId) {
+//       await post("/rules", formData);
+//     } else {
+//       await put(`/rules/${ruleId}`, formData);
+//     }
+
+//     onSave();
+//   } catch (err) {
+//     console.error("Error saving rule:", err);
+//     alert("Failed to save rule. Please try again.");
+//   } finally {
+//     setSaving(false);
+//   }
+// };
+
+
+//   const handleAddCondition = async () => {
+//     if (!ruleId) {
+//       alert('Please save the rule first before adding conditions.');
+//       return;
+//     }
+
+//     try {
+//       let parsedValue;
+//       try {
+//         parsedValue = JSON.parse(newCondition.value);
+//       } catch {
+//         parsedValue = newCondition.value;
+//       }
+
+//       await addCondition({
+//         rule_id: ruleId,
+//         field_name: newCondition.field_name,
+//         operator: newCondition.operator,
+//         value: parsedValue,
+//         logical_operator: newCondition.logical_operator,
+//         condition_order: conditions.length,
+//       });
+
+//       setNewCondition({
+//         field_name: '',
+//         operator: OPERATORS.EQUALS,
+//         value: '',
+//         logical_operator: 'AND',
+//       });
+//     } catch (err) {
+//       console.error('Error adding condition:', err);
+//       alert('Failed to add condition. Please try again.');
+//     }
+//   };
+
+//   const handleAddAction = async () => {
+//     if (!ruleId) {
+//       alert('Please save the rule first before adding actions.');
+//       return;
+//     }
+
+//     try {
+//       let parsedConfig;
+//       try {
+//         parsedConfig = JSON.parse(newAction.action_config);
+//       } catch {
+//         parsedConfig = {};
+//       }
+
+//       await addAction({
+//         rule_id: ruleId,
+//         action_type: newAction.action_type,
+//         action_config: parsedConfig,
+//         action_order: actions.length,
+//       });
+
+//       setNewAction({
+//         action_type: ACTION_TYPES.APPROVE,
+//         action_config: '{}',
+//       });
+//     } catch (err) {
+//       console.error('Error adding action:', err);
+//       alert('Failed to add action. Please try again.');
+//     }
+//   };
+
+//   if (loading && ruleId) {
+//     return (
+//       <div className="p-12 text-center">
+//         <div className="inline-block w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
+//         <p className="mt-4 text-slate-600">Loading rule...</p>
+//       </div>
+//     );
+//   }
+
+//   return (
+//     <div className="p-6">
+//       <div className="flex items-center justify-between mb-6">
+//         <h2 className="text-xl font-bold text-slate-900">
+//           {ruleId ? 'Edit Rule' : 'Create New Rule'}
+//         </h2>
+//         <div className="flex gap-2">
+//           <button
+//             onClick={onCancel}
+//             className="flex items-center gap-2 px-4 py-2 border border-slate-300 text-slate-700 rounded-lg hover:bg-slate-50 transition-colors"
+//           >
+//             <X className="w-4 h-4" />
+//             Cancel
+//           </button>
+//           <button
+//             onClick={handleSaveRule}
+//             disabled={saving || !formData.name}
+//             className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+//           >
+//             <Save className="w-4 h-4" />
+//             {saving ? 'Saving...' : 'Save Rule'}
+//           </button>
+//         </div>
+//       </div>
+
+//       <div className="space-y-6">
+//         <div className="bg-slate-50 rounded-lg p-6 space-y-4">
+//           <h3 className="font-semibold text-slate-900 mb-4">Rule Details</h3>
+
+//           <div className="grid grid-cols-2 gap-4">
+//             <div>
+//               <label className="block text-sm font-medium text-slate-700 mb-2">
+//                 Rule Name *
+//               </label>
+//               <input
+//                 type="text"
+//                 value={formData.name}
+//                 onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+//                 className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+//                 placeholder="e.g., Credit Approval Rule"
+//               />
+//             </div>
+
+//             <div>
+//               <label className="block text-sm font-medium text-slate-700 mb-2">
+//                 Rule Group
+//               </label>
+//               <select
+//                 value={formData.rule_group_id}
+//                 onChange={(e) => setFormData({ ...formData, rule_group_id: e.target.value })}
+//                 className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+//               >
+//                 <option value="">No Group</option>
+//                 {ruleGroups.map((group) => (
+//                   <option key={group.id} value={group.id}>
+//                     {group.name}
+//                   </option>
+//                 ))}
+//               </select>
+//             </div>
+//           </div>
+
+//           <div>
+//             <label className="block text-sm font-medium text-slate-700 mb-2">
+//               Description
+//             </label>
+//             <textarea
+//               value={formData.description}
+//               onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+//               className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+//               rows={3}
+//               placeholder="Describe what this rule does..."
+//             />
+//           </div>
+
+//           <div className="grid grid-cols-2 gap-4">
+//             <div>
+//               <label className="block text-sm font-medium text-slate-700 mb-2">
+//                 Priority
+//               </label>
+//               <input
+//                 type="number"
+//                 value={formData.priority}
+//                                 onChange={(e) =>
+//                   setFormData({
+//                     ...formData,
+//                     priority: Number(e.target.value) || 0
+//                   })
+//                 }
+
+//                 className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+//               />
+//               <p className="text-xs text-slate-500 mt-1">Higher priority rules execute first</p>
+//             </div>
+
+//             <div>
+//               <label className="block text-sm font-medium text-slate-700 mb-2">
+//                 Status
+//               </label>
+//               <label className="flex items-center gap-2 cursor-pointer">
+//                 <input
+//                   type="checkbox"
+//                   checked={formData.is_active}
+//                   onChange={(e) => setFormData({ ...formData, is_active: e.target.checked })}
+//                   className="w-4 h-4 text-blue-600 border-slate-300 rounded focus:ring-blue-500"
+//                 />
+//                 <span className="text-sm text-slate-700">Rule is active</span>
+//               </label>
+//             </div>
+//           </div>
+//         </div>
+
+//         {ruleId && (
+//           <>
+//             <div className="bg-slate-50 rounded-lg p-6">
+//               <div className="flex items-center justify-between mb-4">
+//                 <h3 className="font-semibold text-slate-900">Conditions</h3>
+//               </div>
+
+//               {conditions.length > 0 && (
+//                 <div className="space-y-2 mb-4">
+//                   {conditions.map((condition, index) => (
+//                     <div
+//                       key={condition.id}
+//                       className="flex items-center gap-3 bg-white p-3 rounded-lg border border-slate-200"
+//                     >
+//                       {index > 0 && (
+//                         <span className="text-xs font-semibold text-blue-600 px-2 py-1 bg-blue-50 rounded">
+//                           {condition.logical_operator}
+//                         </span>
+//                       )}
+//                       <div className="flex-1 text-sm">
+//                         <span className="font-medium text-slate-700">{condition.field_name}</span>
+//                         <span className="text-slate-500 mx-2">
+//                           {formatOperatorLabel(condition.operator)}
+//                         </span>
+//                         <span className="font-medium text-slate-900">
+//                           {JSON.stringify(condition.value)}
+//                         </span>
+//                       </div>
+//                       <button
+//                         onClick={() => deleteCondition(condition.id)}
+//                         className="p-1 text-red-600 hover:bg-red-50 rounded transition-colors"
+//                       >
+//                         <Trash2 className="w-4 h-4" />
+//                       </button>
+//                     </div>
+//                   ))}
+//                 </div>
+//               )}
+
+//               <div className="grid grid-cols-12 gap-2">
+//                 <input
+//                   type="text"
+//                   placeholder="Field name"
+//                   value={newCondition.field_name}
+//                   onChange={(e) => setNewCondition({ ...newCondition, field_name: e.target.value })}
+//                   className="col-span-3 px-3 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+//                 />
+//                 <select
+//                   value={newCondition.operator}
+//                   onChange={(e) => setNewCondition({ ...newCondition, operator: e.target.value })}
+//                   className="col-span-3 px-3 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+//                 >
+//                   {Object.entries(OPERATORS).map(([key, value]) => (
+//                     <option key={value} value={value}>
+//                       {formatOperatorLabel(value)}
+//                     </option>
+//                   ))}
+//                 </select>
+//                 <input
+//                   type="text"
+//                   placeholder="Value"
+//                   value={newCondition.value}
+//                   onChange={(e) => setNewCondition({ ...newCondition, value: e.target.value })}
+//                   className="col-span-3 px-3 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+//                 />
+//                 <select
+//                   value={newCondition.logical_operator}
+//                   onChange={(e) => setNewCondition({ ...newCondition, logical_operator: e.target.value })}
+//                   className="col-span-2 px-3 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+//                 >
+//                   <option value="AND">AND</option>
+//                   <option value="OR">OR</option>
+//                 </select>
+//                 <button
+//                   onClick={handleAddCondition}
+//                   disabled={!newCondition.field_name || !newCondition.value}
+//                   className="col-span-1 px-3 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+//                 >
+//                   <Plus className="w-4 h-4 mx-auto" />
+//                 </button>
+//               </div>
+//             </div>
+
+//             <div className="bg-slate-50 rounded-lg p-6">
+//               <div className="flex items-center justify-between mb-4">
+//                 <h3 className="font-semibold text-slate-900">Actions</h3>
+//               </div>
+
+//               {actions.length > 0 && (
+//                 <div className="space-y-2 mb-4">
+//                   {actions.map((action) => (
+//                     <div
+//                       key={action.id}
+//                       className="flex items-center gap-3 bg-white p-3 rounded-lg border border-slate-200"
+//                     >
+//                       <div className="flex-1 text-sm">
+//                         <span className="font-medium text-slate-700">
+//                           {formatActionTypeLabel(action.action_type)}
+//                         </span>
+//                         {Object.keys(action.action_config || {}).length > 0 && (
+//                           <span className="text-slate-500 ml-2">
+//                             {JSON.stringify(action.action_config)}
+//                           </span>
+//                         )}
+//                       </div>
+//                       <button
+//                         onClick={() => deleteAction(action.id)}
+//                         className="p-1 text-red-600 hover:bg-red-50 rounded transition-colors"
+//                       >
+//                         <Trash2 className="w-4 h-4" />
+//                       </button>
+//                     </div>
+//                   ))}
+//                 </div>
+//               )}
+
+//               <div className="grid grid-cols-12 gap-2">
+//                 <select
+//                   value={newAction.action_type}
+//                   onChange={(e) => setNewAction({ ...newAction, action_type: e.target.value })}
+//                   className="col-span-5 px-3 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+//                 >
+//                   {Object.entries(ACTION_TYPES).map(([key, value]) => (
+//                     <option key={value} value={value}>
+//                       {formatActionTypeLabel(value)}
+//                     </option>
+//                   ))}
+//                 </select>
+//                 <input
+//                   type="text"
+//                   placeholder='Config (JSON, e.g., {"key": "value"})'
+//                   value={newAction.action_config}
+//                   onChange={(e) => setNewAction({ ...newAction, action_config: e.target.value })}
+//                   className="col-span-6 px-3 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+//                 />
+//                 <button
+//                   onClick={handleAddAction}
+//                   className="col-span-1 px-3 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+//                 >
+//                   <Plus className="w-4 h-4 mx-auto" />
+//                 </button>
+//               </div>
+//             </div>
+//           </>
+//         )}
+//       </div>
+//     </div>
+//   );
+// }
+
+
+import { useState, useEffect } from 'react';
+import { Save, X, Plus, Trash2 } from 'lucide-react';
+import { useRuleDetails } from '../hooks/useRules';
+import { useRuleGroups } from '../hooks/useRuleGroups';
+import { post, put } from '../lib/apiClient';
+import { createCondition } from "../lib/conditionsApi";
+import {
+  OPERATORS,
+  ACTION_TYPES,
+  formatOperatorLabel,
+  formatActionTypeLabel,
+} from '../lib/ruleEngine';
+
+interface RuleBuilderProps {
+  ruleId: string | null;
+  onSave: () => void;
+  onCancel: () => void;
+}
+
+export default function RuleBuilder({
+  ruleId,
+  onSave,
+  onCancel,
+}: RuleBuilderProps) {
+  const {
+    rule,
+    conditions,
+    actions,
+    loading,
+  } = useRuleDetails(ruleId);
+
+  const { ruleGroups } = useRuleGroups();
+
+  const [formData, setFormData] = useState({
+  name: '',
+  description: '',
+  rule_group_id: '',
+  priority: 0,
+  active: true   // ✅ change this
+});
+
+
+
+  const [newCondition, setNewCondition] = useState({
+    field_name: '',
+    operator: OPERATORS.EQUALS,
+    value: '',
+    logical_operator: 'AND',
+  });
+
+  const [newAction, setNewAction] = useState({
+    action_type: ACTION_TYPES.APPROVE,
+    action_config: '{}',
+  });
+
+  const [saving, setSaving] = useState(false);
+
+  /* =========================
+     LOAD EXISTING RULE
+  ========================== */
+  useEffect(() => {
+    if (rule) {
+      setFormData({
+        name: rule.name ?? '',
+        description: rule.description ?? '',
+        rule_group_id: rule.ruleGroup?.id
+          ? String(rule.ruleGroup.id)
+          : '',
+        priority: Number(rule.priority ?? 1),
+        is_active: Boolean(rule.isActive),
+      });
+    }
+  }, [rule]);
+
+  /* =========================
+     SAVE RULE (FIXED)
+  ========================== */
+  const handleSaveRule = async () => {
+    try {
+      setSaving(true);
+
+      const payload = {
+        name: formData.name,
+        description: formData.description,
+        priority: Number(formData.priority) || 1,
+        isActive: formData.is_active,
+        ruleGroup: formData.rule_group_id
+          ? { id: Number(formData.rule_group_id) }
+          : null,
+      };
+
+      if (!ruleId) {
+        await post('/rules', payload);
+      } else {
+        await put(`/rules/${ruleId}`, payload);
+      }
+
+      onSave();
+    } catch (err) {
+      console.error('Error saving rule:', err);
+      alert('Failed to save rule. Please try again.');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  /* =========================
+     ADD CONDITION
+  ========================== */
+  const handleAddCondition = async () => {
+    if (!ruleId) {
+      alert('Please save the rule first.');
+      return;
+    }
+
+    let parsedValue: any = newCondition.value;
+    try {
+      parsedValue = JSON.parse(newCondition.value);
+    } catch {}
+
+  await createCondition({
+  ruleId: Number(ruleId),
+  fieldName: newCondition.field_name,
+  operator: newCondition.operator,
+  fieldValue: newCondition.value
+});
+
+    setNewCondition({
+      field_name: '',
+      operator: OPERATORS.EQUALS,
+      value: '',
+      logical_operator: 'AND',
+    });
+  };
+
+  /* =========================
+     ADD ACTION
+  ========================== */
+  const handleAddAction = async () => {
+    if (!ruleId) {
+      alert('Please save the rule first.');
+      return;
+    }
+
+    let parsedConfig: any = {};
+    try {
+      parsedConfig = JSON.parse(newAction.action_config);
+    } catch {}
+
+    await addAction({
+      rule_id: ruleId,
+      action_type: newAction.action_type,
+      action_config: parsedConfig,
+      action_order: actions.length,
+    });
+
+    setNewAction({
+      action_type: ACTION_TYPES.APPROVE,
+      action_config: '{}',
+    });
+  };
+
+  if (loading && ruleId) {
+    return <p className="p-6">Loading rule...</p>;
+  }
+
+  /* =========================
+     UI
+  ========================== */
+   return (
+    <div className="p-6">
+      <div className="flex items-center justify-between mb-6">
+        <h2 className="text-xl font-bold text-slate-900">
+          {ruleId ? 'Edit Rule' : 'Create New Rule'}
+        </h2>
+        <div className="flex gap-2">
+          <button
+            onClick={onCancel}
+            className="flex items-center gap-2 px-4 py-2 border border-slate-300 text-slate-700 rounded-lg hover:bg-slate-50 transition-colors"
+          >
+            <X className="w-4 h-4" />
+            Cancel
+          </button>
+          <button
+            onClick={handleSaveRule}
+            disabled={saving || !formData.name}
+            className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            <Save className="w-4 h-4" />
+            {saving ? 'Saving...' : 'Save Rule'}
+          </button>
+        </div>
+      </div>
+
+      <div className="space-y-6">
+        <div className="bg-slate-50 rounded-lg p-6 space-y-4">
+          <h3 className="font-semibold text-slate-900 mb-4">Rule Details</h3>
+
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-slate-700 mb-2">
+                Rule Name *
+              </label>
+              <input
+                type="text"
+                value={formData.name}
+                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                placeholder="e.g., Credit Approval Rule"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-slate-700 mb-2">
+                Rule Group
+              </label>
+              <select
+                value={formData.rule_group_id}
+                onChange={(e) => setFormData({ ...formData, rule_group_id: e.target.value })}
+                className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              >
+                <option value="">No Group</option>
+                {ruleGroups.map((group) => (
+                  <option key={group.id} value={group.id}>
+                    {group.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-slate-700 mb-2">
+              Description
+            </label>
+            <textarea
+              value={formData.description}
+              onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+              className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              rows={3}
+              placeholder="Describe what this rule does..."
+            />
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-slate-700 mb-2">
+                Priority
+              </label>
+              <input
+                type="number"
+                value={formData.priority}
+                                onChange={(e) =>
+                  setFormData({
+                    ...formData,
+                    priority: Number(e.target.value) || 0
+                  })
+                }
+
+                className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+              <p className="text-xs text-slate-500 mt-1">Higher priority rules execute first</p>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-slate-700 mb-2">
+                Status
+              </label>
+              <label className="flex items-center gap-2 cursor-pointer">
+                <input
+  type="checkbox"
+  checked={formData.active}
+  onChange={(e) =>
+    setFormData({ ...formData, active: e.target.checked })
+  }
+/>
+                <span className="text-sm text-slate-700">Rule is active</span>
+              </label>
+            </div>
+          </div>
+        </div>
+
+        {ruleId && (
+          <>
+            <div className="bg-slate-50 rounded-lg p-6">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="font-semibold text-slate-900">Conditions</h3>
+              </div>
+
+              {conditions.length > 0 && (
+                <div className="space-y-2 mb-4">
+                  {conditions.map((condition, index) => (
+                    <div
+                      key={condition.id}
+                      className="flex items-center gap-3 bg-white p-3 rounded-lg border border-slate-200"
+                    >
+                      {index > 0 && (
+                        <span className="text-xs font-semibold text-blue-600 px-2 py-1 bg-blue-50 rounded">
+                          {condition.logical_operator}
+                        </span>
+                      )}
+                      <div className="flex-1 text-sm">
+                        <span className="font-medium text-slate-700">{condition.field_name}</span>
+                        <span className="text-slate-500 mx-2">
+                          {formatOperatorLabel(condition.operator)}
+                        </span>
+                        <span className="font-medium text-slate-900">
+                          {JSON.stringify(condition.value)}
+                        </span>
+                      </div>
+                      <button
+                        onClick={() => deleteCondition(condition.id)}
+                        className="p-1 text-red-600 hover:bg-red-50 rounded transition-colors"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              <div className="grid grid-cols-12 gap-2">
+                <input
+                  type="text"
+                  placeholder="Field name"
+                  value={newCondition.field_name}
+                  onChange={(e) => setNewCondition({ ...newCondition, field_name: e.target.value })}
+                  className="col-span-3 px-3 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
+                <select
+                  value={newCondition.operator}
+                  onChange={(e) => setNewCondition({ ...newCondition, operator: e.target.value })}
+                  className="col-span-3 px-3 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                >
+                  {Object.entries(OPERATORS).map(([key, value]) => (
+                    <option key={value} value={value}>
+                      {formatOperatorLabel(value)}
+                    </option>
+                  ))}
+                </select>
+                <input
+                  type="text"
+                  placeholder="Value"
+                  value={newCondition.value}
+                  onChange={(e) => setNewCondition({ ...newCondition, value: e.target.value })}
+                  className="col-span-3 px-3 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
+                <select
+                  value={newCondition.logical_operator}
+                  onChange={(e) => setNewCondition({ ...newCondition, logical_operator: e.target.value })}
+                  className="col-span-2 px-3 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                >
+                  <option value="AND">AND</option>
+                  <option value="OR">OR</option>
+                </select>
+                <button
+                  onClick={handleAddCondition}
+                  disabled={!newCondition.field_name || !newCondition.value}
+                  className="col-span-1 px-3 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  <Plus className="w-4 h-4 mx-auto" />
+                </button>
+              </div>
+            </div>
+
+            <div className="bg-slate-50 rounded-lg p-6">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="font-semibold text-slate-900">Actions</h3>
+              </div>
+
+              {actions.length > 0 && (
+                <div className="space-y-2 mb-4">
+                  {actions.map((action) => (
+                    <div
+                      key={action.id}
+                      className="flex items-center gap-3 bg-white p-3 rounded-lg border border-slate-200"
+                    >
+                      <div className="flex-1 text-sm">
+                        <span className="font-medium text-slate-700">
+                          {formatActionTypeLabel(action.action_type)}
+                        </span>
+                        {Object.keys(action.action_config || {}).length > 0 && (
+                          <span className="text-slate-500 ml-2">
+                            {JSON.stringify(action.action_config)}
+                          </span>
+                        )}
+                      </div>
+                      <button
+                        onClick={() => deleteAction(action.id)}
+                        className="p-1 text-red-600 hover:bg-red-50 rounded transition-colors"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              <div className="grid grid-cols-12 gap-2">
+                <select
+                  value={newAction.action_type}
+                  onChange={(e) => setNewAction({ ...newAction, action_type: e.target.value })}
+                  className="col-span-5 px-3 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                >
+                  {Object.entries(ACTION_TYPES).map(([key, value]) => (
+                    <option key={value} value={value}>
+                      {formatActionTypeLabel(value)}
+                    </option>
+                  ))}
+                </select>
+                <input
+                  type="text"
+                  placeholder='Config (JSON, e.g., {"key": "value"})'
+                  value={newAction.action_config}
+                  onChange={(e) => setNewAction({ ...newAction, action_config: e.target.value })}
+                  className="col-span-6 px-3 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
+                <button
+                  onClick={handleAddAction}
+                  className="col-span-1 px-3 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                >
+                  <Plus className="w-4 h-4 mx-auto" />
+                </button>
+              </div>
+            </div>
+          </>
+        )}
+      </div>
+    </div>
+  );
+}
