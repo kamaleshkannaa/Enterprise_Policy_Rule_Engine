@@ -311,15 +311,16 @@
 
 import { useState } from "react";
 import { Play, FileJson, AlertCircle, CheckCircle } from "lucide-react";
-import { useRules } from "../hooks/useRules";
-import { useRuleDetails } from "../hooks/useRules";
+import { useRules, useRuleDetails } from "../hooks/useRules";
 import { evaluateRule } from "../lib/ruleEngine";
 
 export default function RuleTester() {
-  const { rules } = useRules();
+  const { rules, loading } = useRules();
+
   const [selectedRuleId, setSelectedRuleId] = useState<string>("");
-  const { rule, conditions, actions } = useRuleDetails(
-    selectedRuleId || null
+
+  const { rule } = useRuleDetails(
+    selectedRuleId ? Number(selectedRuleId) : null
   );
 
   const [inputData, setInputData] = useState(
@@ -329,44 +330,51 @@ export default function RuleTester() {
   const [testResult, setTestResult] = useState<{
     matched: boolean;
     decision: string;
-    actions: any[];
     executionTime: number;
   } | null>(null);
 
   const [error, setError] = useState<string | null>(null);
 
+  // ✅ Backend uses `active`
+  const activeRules = rules.filter((r: any) => r.active);
+
   const handleTest = async () => {
-    try {
-      setError(null);
-      setTestResult(null);
+  try {
+    setError(null);
+    setTestResult(null);
 
-      if (!rule) {
-        setError("Please select a rule to test");
-        return;
-      }
-
-      if (!rule.is_active) {
-        setError("This rule is not active");
-        return;
-      }
-
-      const parsedInput = JSON.parse(inputData);
-      const startTime = performance.now();
-
-      const response = await evaluateRule(parsedInput);
-
-      const endTime = performance.now();
-
-      setTestResult({
-        matched: response.decision === "APPROVED",
-        decision: response.decision,
-        actions: [],
-        executionTime: Math.round(endTime - startTime),
-      });
-    } catch (err: any) {
-      setError(err.message || "Invalid JSON input");
+    if (!selectedRuleId) {
+      setError("Please select a rule to test");
+      return;
     }
-  };
+
+    if (!rule?.active) {
+      setError("Selected rule is not active");
+      return;
+    }
+
+    const parsedInput = JSON.parse(inputData);
+
+    const startTime = performance.now();
+    const response = await evaluateRule(parsedInput);
+    const endTime = performance.now();
+
+    setTestResult({
+      matched: response.decision !== "NO_MATCH",
+      decision: response.decision,
+      executionTime: Math.round(endTime - startTime),
+    });
+  } catch (err: any) {
+  console.error(err);
+
+  if (err instanceof SyntaxError) {
+    setError("Invalid JSON input");
+  } else {
+    setError("Rule evaluation failed");
+  }
+}
+};
+
 
   const exampleInputs = [
     {
@@ -387,9 +395,7 @@ export default function RuleTester() {
 
   const loadExample = (example: any) => {
     setInputData(JSON.stringify(example.data, null, 2));
-  };
-
-  const activeRules = rules.filter((r) => r.is_active);
+  };  
 
   return (
     <div className="p-6">

@@ -149,21 +149,13 @@ import { post } from "./apiClient";
  * OPERATORS (used by RuleBuilder UI)
  */
 export const OPERATORS = {
-  EQUALS: "equals",
-  NOT_EQUALS: "not_equals",
-  GREATER_THAN: "greater_than",
-  LESS_THAN: "less_than",
-  GREATER_THAN_OR_EQUAL: "greater_than_or_equal",
-  LESS_THAN_OR_EQUAL: "less_than_or_equal",
-  CONTAINS: "contains",
-  NOT_CONTAINS: "not_contains",
-  STARTS_WITH: "starts_with",
-  ENDS_WITH: "ends_with",
-  IN: "in",
-  NOT_IN: "not_in",
-  IS_EMPTY: "is_empty",
-  IS_NOT_EMPTY: "is_not_empty",
+  GREATER_THAN: 'greater_than',
+  LESS_THAN: 'less_than',
+  GREATER_THAN_EQUAL: 'greater_than_equal',
+  LESS_THAN_EQUAL: 'less_than_equal',
+  EQUALS: 'equals',
 };
+
 
 /**
  * ACTION TYPES (used by RuleBuilder UI)
@@ -184,8 +176,23 @@ export const ACTION_TYPES = {
  * (This replaces frontend evaluation)
  */
 export async function evaluateRule(input: any) {
-  return post<{ decision: string }>("/evaluate", input);
+  const res = await fetch("http://localhost:8080/api/engine/evaluate", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(input),
+  });
+
+  if (!res.ok) {
+    throw new Error("Rule evaluation failed");
+  }
+
+  // ✅ CORRECT: backend already returns JSON
+  return await res.json();
 }
+
+
 
 /**
  * OPTIONAL: UI formatting helpers (KEEP)

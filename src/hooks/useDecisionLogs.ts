@@ -158,8 +158,9 @@ export function useDecisionStats() {
       .then((logs) => {
         const matched = logs.filter((l) => l.matched).length;
         const avg =
-          logs.reduce((s, l) => s + (l.executionTimeMs || 0), 0) /
-          (logs.length || 1);
+  logs.reduce((s, l) => s + (l.executionTime || 0), 0) /
+  (logs.length || 1);
+
 
         const today = new Date();
         today.setHours(0, 0, 0, 0);

@@ -11,20 +11,28 @@ interface RulesManagerProps {
 export default function RulesManager({ onEdit, onCreateNew }: RulesManagerProps) {
   const { rules, loading, deleteRule, updateRule } = useRules();
   const { ruleGroups } = useRuleGroups();
+
   const [searchTerm, setSearchTerm] = useState('');
   const [filterGroup, setFilterGroup] = useState<string>('all');
   const [filterStatus, setFilterStatus] = useState<string>('all');
 
+  const safeSearch = searchTerm.toLowerCase();
+
   const filteredRules = rules.filter((rule) => {
+    const name = (rule.name ?? '').toLowerCase();
+    const description = (rule.description ?? '').toLowerCase();
+
     const matchesSearch =
-      rule.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      (rule.description?.toLowerCase().includes(searchTerm.toLowerCase()) ?? false);
+      name.includes(safeSearch) || description.includes(safeSearch);
+
     const matchesGroup =
       filterGroup === 'all' || rule.rule_group_id === filterGroup;
+
     const matchesStatus =
       filterStatus === 'all' ||
       (filterStatus === 'active' && rule.is_active) ||
       (filterStatus === 'inactive' && !rule.is_active);
+
     return matchesSearch && matchesGroup && matchesStatus;
   });
 
@@ -36,10 +44,12 @@ export default function RulesManager({ onEdit, onCreateNew }: RulesManagerProps)
     }
   };
 
-  const handleDelete = async (ruleId: string, ruleName: string) => {
+  const handleDelete = async (ruleId: string, ruleName: string | null) => {
+    const displayName = ruleName ?? 'this rule';
+
     if (
       window.confirm(
-        `Are you sure you want to delete the rule "${ruleName}"? This action cannot be undone.`
+        `Are you sure you want to delete "${displayName}"? This action cannot be undone.`
       )
     ) {
       try {
@@ -49,7 +59,6 @@ export default function RulesManager({ onEdit, onCreateNew }: RulesManagerProps)
       }
     }
   };
-
   if (loading) {
     return (
       <div className="p-12 text-center">

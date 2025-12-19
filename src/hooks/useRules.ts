@@ -261,6 +261,7 @@ export function useRules() {
 
   return { rules, loading, deleteRule };
 }
+   
 
 
 /**
@@ -269,7 +270,6 @@ export function useRules() {
 export function useRuleDetails(ruleId: string | null) {
   const [rule, setRule] = useState<any>(null);
   const [conditions, setConditions] = useState<any[]>([]);
-  const [actions, setActions] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
@@ -277,19 +277,15 @@ export function useRuleDetails(ruleId: string | null) {
 
     setLoading(true);
 
-    Promise.all([
-      get<any>(`/rules/${ruleId}`),
-      get<any[]>(`/rules/${ruleId}/conditions`),
-      get<any[]>(`/rules/${ruleId}/actions`),
-    ])
-      .then(([ruleData, conditionsData, actionsData]) => {
+    get<any>(`/rules/${ruleId}`)
+      .then(ruleData => {
         setRule(ruleData);
-        setConditions(conditionsData);
-        setActions(actionsData);
+        setConditions(ruleData.conditions || []);
       })
       .finally(() => setLoading(false));
   }, [ruleId]);
 
-  return { rule, conditions, actions, loading };
+  return { rule, conditions, loading };
 }
+
 
