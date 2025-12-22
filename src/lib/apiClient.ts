@@ -53,7 +53,74 @@
 //   }
 // }
 
-const API_BASE = 'http://localhost:8080/api';
+// const API_BASE = 'http://localhost:8080/api';
+
+// async function handleResponse(res: Response) {
+//   if (!res.ok) {
+//     let error;
+//     try {
+//       error = await res.json();
+//     } catch {
+//       error = { message: res.statusText };
+//     }
+//     throw error;
+//   }
+//   return res.json();
+// }
+
+// /* =========================
+//    GET
+// ========================= */
+// export async function get(path: string) {
+//   const res = await fetch(`${API_BASE}${path}`, {
+//     method: 'GET',
+//   });
+//   return handleResponse(res);
+// }
+
+// /* =========================
+//    POST
+// ========================= */
+// export async function post(path: string, body: any) {
+//   const res = await fetch(`${API_BASE}${path}`, {
+//     method: 'POST',
+//     headers: {
+//       'Content-Type': 'application/json',
+//     },
+//     body: JSON.stringify(body),
+//   });
+//   return handleResponse(res);
+// }
+
+// /* =========================
+//    PUT
+// ========================= */
+// export async function put(path: string, body: any) {
+//   const res = await fetch(`${API_BASE}${path}`, {
+//     method: 'PUT',
+//     headers: {
+//       'Content-Type': 'application/json',
+//     },
+//     body: JSON.stringify(body),
+//   });
+//   return handleResponse(res);
+// }
+
+// /* =========================
+//    DELETE
+// ========================= */
+// export async function del(path: string) {
+//   const res = await fetch(`${API_BASE}${path}`, {
+//     method: 'DELETE',
+//   });
+//   return handleResponse(res);
+// }
+
+
+
+// src/lib/apiClient.ts
+
+const API_BASE = "http://localhost:8080/api";
 
 async function handleResponse(res: Response) {
   if (!res.ok) {
@@ -73,7 +140,7 @@ async function handleResponse(res: Response) {
 ========================= */
 export async function get(path: string) {
   const res = await fetch(`${API_BASE}${path}`, {
-    method: 'GET',
+    method: "GET",
   });
   return handleResponse(res);
 }
@@ -83,9 +150,9 @@ export async function get(path: string) {
 ========================= */
 export async function post(path: string, body: any) {
   const res = await fetch(`${API_BASE}${path}`, {
-    method: 'POST',
+    method: "POST",
     headers: {
-      'Content-Type': 'application/json',
+      "Content-Type": "application/json",
     },
     body: JSON.stringify(body),
   });
@@ -97,9 +164,9 @@ export async function post(path: string, body: any) {
 ========================= */
 export async function put(path: string, body: any) {
   const res = await fetch(`${API_BASE}${path}`, {
-    method: 'PUT',
+    method: "PUT",
     headers: {
-      'Content-Type': 'application/json',
+      "Content-Type": "application/json",
     },
     body: JSON.stringify(body),
   });
@@ -111,10 +178,9 @@ export async function put(path: string, body: any) {
 ========================= */
 export async function del(path: string) {
   const res = await fetch(`${API_BASE}${path}`, {
-    method: 'DELETE',
+    method: "DELETE",
   });
   return handleResponse(res);
 }
-
 
 

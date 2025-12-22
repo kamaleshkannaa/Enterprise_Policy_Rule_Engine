@@ -237,55 +237,158 @@
 //   };
 // }
 
+
+
+
+// import { useEffect, useState } from "react";
+// import { get, post, put, del } from '../lib/apiClient';
+
+// /**
+//  * Fetch all rules
+//  */
+// export function useRules() {
+//   const [rules, setRules] = useState<any[]>([]);
+//   const [loading, setLoading] = useState(true);
+
+//   useEffect(() => {
+//     get<any[]>('/rules')
+//       .then(setRules)
+//       .finally(() => setLoading(false));
+//   }, []);
+
+//   // ✅ DELETE RULE
+//   const deleteRule = async (id: number) => {
+//     await del(`/rules/${id}`);
+//     setRules(prev => prev.filter(r => r.id !== id));
+//   };
+
+//   return { rules, loading, deleteRule };
+// }
+   
+
+
+// /**
+//  * Fetch rule details (rule + conditions + actions)
+//  */
+// export function useRuleDetails(ruleId: string | null) {
+//   const [rule, setRule] = useState<any>(null);
+//   const [conditions, setConditions] = useState<any[]>([]);
+//   const [loading, setLoading] = useState(false);
+
+//   useEffect(() => {
+//     if (!ruleId) return;
+
+//     setLoading(true);
+
+//     get<any>(`/rules/${ruleId}`)
+//       .then(ruleData => {
+//         setRule(ruleData);
+//         setConditions(ruleData.conditions || []);
+//       })
+//       .finally(() => setLoading(false));
+//   }, [ruleId]);
+
+//   return { rule, conditions, loading };
+// }
+
+
+
 import { useEffect, useState } from "react";
 import { get, post, put, del } from '../lib/apiClient';
 
 /**
- * Fetch all rules
+ * ✅ FIXED: Fetch all rules with updateRule and refetch support
+ * Now sends correct field names for backend: "active" instead of "is_active"
  */
 export function useRules() {
-  const [rules, setRules] = useState<any[]>([]);
+  const [rules, setRules] = useState([]);
   const [loading, setLoading] = useState(true);
 
+  // ✅ LOAD RULES ON MOUNT
+  const loadRules = async () => {
+    try {
+      setLoading(true);
+      const data = await get('/rules');
+      setRules(data);
+    } catch (err) {
+      console.error('Error loading rules:', err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
-    get<any[]>('/rules')
-      .then(setRules)
-      .finally(() => setLoading(false));
+    loadRules();
   }, []);
+
+  // ✅ UPDATE RULE - Send "active" field name that backend expects
+  const updateRule = async (id: string | number, updates: any) => {
+    try {
+      // ✅ Convert "is_active" to "active" for backend
+      const backendUpdates = { ...updates };
+      if ('is_active' in backendUpdates) {
+        backendUpdates.active = backendUpdates.is_active;
+        delete backendUpdates.is_active;
+      }
+
+      const response = await put(`/rules/${id}`, backendUpdates);
+      return response;
+    } catch (err) {
+      console.error('Error updating rule:', err);
+      throw err;
+    }
+  };
 
   // ✅ DELETE RULE
   const deleteRule = async (id: number) => {
-    await del(`/rules/${id}`);
-    setRules(prev => prev.filter(r => r.id !== id));
+    try {
+      await del(`/rules/${id}`);
+      setRules(prev => prev.filter(r => r.id !== id));
+    } catch (err) {
+      console.error('Error deleting rule:', err);
+      throw err;
+    }
   };
 
-  return { rules, loading, deleteRule };
-}
-   
+  // ✅ REFETCH FUNCTION (THIS IS THE CRITICAL FIX!)
+  const refetch = async () => {
+    try {
+      const data = await get('/rules');
+      setRules(data);
+    } catch (err) {
+      console.error('Error refetching rules:', err);
+    }
+  };
 
+  return { 
+    rules, 
+    loading, 
+    deleteRule, 
+    updateRule,    
+    refetch        
+  };
+}
 
 /**
  * Fetch rule details (rule + conditions + actions)
  */
 export function useRuleDetails(ruleId: string | null) {
-  const [rule, setRule] = useState<any>(null);
-  const [conditions, setConditions] = useState<any[]>([]);
+  const [rule, setRule] = useState(null);
+  const [conditions, setConditions] = useState([]);
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     if (!ruleId) return;
 
     setLoading(true);
-
-    get<any>(`/rules/${ruleId}`)
+    get(`/rules/${ruleId}`)
       .then(ruleData => {
         setRule(ruleData);
         setConditions(ruleData.conditions || []);
       })
+      .catch(err => console.error('Error loading rule details:', err))
       .finally(() => setLoading(false));
   }, [ruleId]);
 
   return { rule, conditions, loading };
 }
-
-
