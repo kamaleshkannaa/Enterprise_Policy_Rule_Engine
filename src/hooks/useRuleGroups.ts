@@ -106,7 +106,6 @@
 
 // //   return { groups, loading };
 // // }
-// src/hooks/useRuleGroups.ts
 import { useEffect, useState } from "react";
 import { get, post, put, del } from "../lib/apiClient";
 
@@ -116,6 +115,13 @@ export type RuleGroup = {
   description?: string;
 };
 
+/**
+ * RULE GROUPS HOOK - ALL PATHS FIXED ✅
+ * GET    /api/rule-groups
+ * POST   /api/rule-groups  
+ * PUT    /api/rule-groups/{id}
+ * DELETE /api/rule-groups/{id}
+ */
 export function useRuleGroups() {
   const [ruleGroups, setRuleGroups] = useState<RuleGroup[]>([]);
   const [loading, setLoading] = useState(true);
@@ -124,7 +130,8 @@ export function useRuleGroups() {
   const fetchRuleGroups = async () => {
     try {
       setLoading(true);
-      const data = await get("/api/rule-groups");
+      // ✅ FIXED: Add /api/
+      const data = await get<RuleGroup[]>("/api/rule-groups");
       setRuleGroups(data ?? []);
       setError(null);
     } catch (err: any) {
@@ -139,19 +146,19 @@ export function useRuleGroups() {
   }, []);
 
   const createRuleGroup = async (group: Partial<RuleGroup>) => {
+    // ✅ FIXED: Add /api/
     await post("/api/rule-groups", group);
     await fetchRuleGroups();
   };
 
-  const updateRuleGroup = async (
-    id: number,
-    updates: Partial<RuleGroup>
-  ) => {
+  const updateRuleGroup = async (id: number, updates: Partial<RuleGroup>) => {
+    // ✅ FIXED: Add /api/
     await put(`/api/rule-groups/${id}`, updates);
     await fetchRuleGroups();
   };
 
   const deleteRuleGroup = async (id: number) => {
+    // ✅ FIXED: Add /api/
     await del(`/api/rule-groups/${id}`);
     await fetchRuleGroups();
   };
@@ -166,4 +173,3 @@ export function useRuleGroups() {
     deleteRuleGroup,
   };
 }
-

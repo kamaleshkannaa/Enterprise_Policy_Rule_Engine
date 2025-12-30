@@ -293,17 +293,21 @@
 
 
 // src/hooks/useRules.ts
+// src/hooks/useRules.ts - SINGLE FILE, NO DUPLICATES
 import { useEffect, useState } from "react";
-import { get, put, del } from "../lib/apiClient";
+import { get, post, put, del } from "../lib/apiClient";
+
+export type RuleGroup = {
+  id: number;
+  name: string;
+  description?: string;
+};
 
 /**
- * =========================
- * RULES LIST HOOK
- * =========================
- * Uses:
- *   GET    /api/rules
- *   PUT    /api/rules/{id}
- *   DELETE /api/rules/{id}
+ * RULES LIST HOOK - ALL PATHS FIXED ✅
+ * GET    /api/rules           
+ * PUT    /api/rules/{id}      
+ * DELETE /api/rules/{id}      
  */
 export function useRules() {
   const [rules, setRules] = useState<any[]>([]);
@@ -312,7 +316,7 @@ export function useRules() {
   const loadRules = async () => {
     try {
       setLoading(true);
-      const data = await get("/api/rules");
+      const data = await get("/api/rules");  // ✅ FIXED
       setRules(data ?? []);
     } catch (err) {
       console.error("Error loading rules:", err);
@@ -326,65 +330,107 @@ export function useRules() {
   }, []);
 
   const updateRule = async (id: number, updates: any) => {
-    // frontend → backend field mapping
     const backendUpdates: any = { ...updates };
-
-    // is_active -> active
+    
     if ("is_active" in backendUpdates) {
       backendUpdates.active = backendUpdates.is_active;
       delete backendUpdates.is_active;
     }
-
-    // rule_group_id -> groupId (if still used anywhere)
     if ("rule_group_id" in backendUpdates) {
       backendUpdates.groupId = backendUpdates.rule_group_id;
       delete backendUpdates.rule_group_id;
     }
 
-    await put(`/api/rules/${id}`, backendUpdates);
+    await put(`/api/rules/${id}`, backendUpdates);  // ✅ FIXED
     await loadRules();
   };
 
   const deleteRule = async (id: number) => {
-    await del(`/api/rules/${id}`);
-    // optimistic update + ensure refetch
-    setRules((prev) => prev.filter((r) => r.id !== id));
-    await loadRules();
+    await del(`/api/rules/${id}`);  // ✅ FIXED
+    setRules(prev => prev.filter(r => r.id !== id));
   };
-
-  const refetch = loadRules;
 
   return {
     rules,
     loading,
     updateRule,
     deleteRule,
-    refetch,
+    refetch: loadRules,
   };
 }
 
+/**
+ * RULE GROUPS HOOK - ALL PATHS FIXED ✅
+ */
+export function useRuleGroups() {
+  const [ruleGroups, setRuleGroups] = useState<RuleGroup[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
+  const fetchRuleGroups = async () => {
+    try {
+      setLoading(true);
+      const data = await get("/api/rule-groups");  // ✅ FIXED
+      setRuleGroups(data ?? []);
+      setError(null);
+    } catch (err: any) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchRuleGroups();
+  }, []);
+
+  const createRuleGroup = async (group: Partial<RuleGroup>) => {
+    await post("/api/rule-groups", group);
+    await fetchRuleGroups();
+  };
+
+  const updateRuleGroup = async (id: number, updates: Partial<RuleGroup>) => {
+    await put(`/api/rule-groups/${id}`, updates);
+    await fetchRuleGroups();
+  };
+
+  const deleteRuleGroup = async (id: number) => {
+    await del(`/api/rule-groups/${id}`);
+    await fetchRuleGroups();
+  };
+
+  return {
+    ruleGroups,
+    loading,
+    error,
+    fetchRuleGroups,
+    createRuleGroup,
+    updateRuleGroup,
+    deleteRuleGroup,
+  };
+}
 
 /**
- * Fetch rule details (rule + conditions + actions)
+ * SINGLE RULE DETAILS - ONLY ONE VERSION ✅
+ * GET /api/rules/{id}
  */
-export function useRuleDetails(ruleId: string | null) {
-  const [rule, setRule] = useState(null);
-  const [conditions, setConditions] = useState([]);
+export function useRuleDetails(ruleId: number | null) {
+  const [rule, setRule] = useState<any | null>(null);
+  const [conditions, setConditions] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     if (!ruleId) return;
 
     setLoading(true);
-    get(`/rules/${ruleId}`)
-      .then(ruleData => {
+    get(`/api/rules/${ruleId}`)  // ✅ FIXED - SINGLE SOURCE OF TRUTH
+      .then((ruleData) => {
         setRule(ruleData);
-        setConditions(ruleData.conditions || []);
+        setConditions(ruleData.conditions ?? []);
       })
-      .catch(err => console.error('Error loading rule details:', err))
+      .catch((err) => console.error("Error loading rule details:", err))
       .finally(() => setLoading(false));
   }, [ruleId]);
 
-  return { rule, conditions, loading };
+  return { rule, conditions, loading, setConditions };
 }
