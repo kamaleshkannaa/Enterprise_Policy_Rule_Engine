@@ -580,89 +580,329 @@
 // }
 
 
-import { Activity, TrendingUp, Zap, CheckCircle, BarChart3, Users, Gauge } from 'lucide-react';
-import { useDecisionStats } from '../hooks/useDecisionLogs';
-import { useRules } from '../hooks/useRules';
+// import { Activity, TrendingUp, Zap, CheckCircle, BarChart3, Users, Gauge } from 'lucide-react';
+// import { useDecisionStats } from '../hooks/useDecisionLogs';
+// import { useRules } from '../hooks/useRules';
+
+// export default function Analytics() {
+//   const { stats, loading: statsLoading } = useDecisionStats();
+//   const { rules, loading: rulesLoading } = useRules();
+
+//   // ✅ FIXED: Changed from r.is_active to r.active
+//   const activeRules = rules.filter((r) => r.active).length;
+//   const inactiveRules = rules.filter((r) => !r.active).length;
+//   const matchRate =
+//     stats.totalDecisions > 0
+//       ? Math.round((stats.matchedDecisions / stats.totalDecisions) * 100)
+//       : 0;
+
+//   const statCards = [
+//     {
+//       label: 'Total Decisions',
+//       value: stats.totalDecisions.toLocaleString(),
+//       icon: Activity,
+//       color: 'from-blue-600 to-cyan-600',
+//       bgColor: 'bg-blue-500/10',
+//       textColor: 'text-blue-400',
+//     },
+//     {
+//       label: 'Matched Decisions',
+//       value: stats.matchedDecisions.toLocaleString(),
+//       icon: CheckCircle,
+//       color: 'from-green-600 to-emerald-600',
+//       bgColor: 'bg-green-500/10',
+//       textColor: 'text-green-400',
+//     },
+//     {
+//       label: 'Match Rate',
+//       value: `${matchRate}%`,
+//       icon: TrendingUp,
+//       color: 'from-purple-600 to-pink-600',
+//       bgColor: 'bg-purple-500/10',
+//       textColor: 'text-purple-400',
+//     },
+//     {
+//       label: 'Avg Execution Time',
+//       value: `${stats.avgExecutionTime}ms`,
+//       icon: Zap,
+//       color: 'from-orange-600 to-red-600',
+//       bgColor: 'bg-orange-500/10',
+//       textColor: 'text-orange-400',
+//     },
+//   ];
+
+//   const ruleCards = [
+//     {
+//       label: 'Total Rules',
+//       value: rules.length,
+//       icon: BarChart3,
+//       color: 'from-indigo-600 to-indigo-700',
+//       bgColor: 'bg-indigo-500/10',
+//       textColor: 'text-indigo-400',
+//     },
+//     {
+//       label: 'Active Rules',
+//       value: activeRules,
+//       icon: CheckCircle,
+//       color: 'from-green-600 to-emerald-600',
+//       bgColor: 'bg-green-500/10',
+//       textColor: 'text-green-400',
+//     },
+//     {
+//       label: 'Inactive Rules',
+//       value: inactiveRules,
+//       icon: Gauge,
+//       color: 'from-slate-600 to-slate-700',
+//       bgColor: 'bg-slate-500/10',
+//       textColor: 'text-slate-400',
+//     },
+//     {
+//       label: 'Decisions Today',
+//       value: stats.decisionsToday,
+//       icon: Users,
+//       color: 'from-cyan-600 to-blue-600',
+//       bgColor: 'bg-cyan-500/10',
+//       textColor: 'text-cyan-400',
+//     },
+//   ];
+
+//   if (statsLoading || rulesLoading) {
+//     return (
+//       <div className="flex items-center justify-center py-20">
+//         <div className="text-center">
+//           <div className="inline-flex items-center justify-center w-14 h-14 rounded-full bg-indigo-500/20 mb-4">
+//             <div className="w-10 h-10 border-4 border-indigo-400/30 border-t-indigo-400 rounded-full animate-spin"></div>
+//           </div>
+//           <p className="text-slate-400 font-medium">Loading analytics...</p>
+//         </div>
+//       </div>
+//     );
+//   }
+
+//   return (
+//     <div>
+//       {/* Header */}
+//       <div className="mb-10">
+//         <h2 className="text-3xl font-bold text-white mb-1">Analytics & Insights</h2>
+//         <p className="text-slate-400">Monitor rule performance and decision metrics</p>
+//       </div>
+
+//       {/* Decision Stats */}
+//       <div className="mb-12">
+//         <h3 className="text-lg font-semibold text-white mb-5 flex items-center gap-2">
+//           <Activity className="w-5 h-5 text-indigo-400" />
+//           Decision Metrics
+//         </h3>
+//         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+//           {statCards.map((card, index) => {
+//             const Icon = card.icon;
+//             return (
+//               <div
+//                 key={index}
+//                 className="group bg-slate-800/50 backdrop-blur-sm border border-slate-700 hover:border-indigo-500/50 rounded-lg p-6 transition-all duration-300 hover:shadow-lg hover:shadow-indigo-500/10"
+//               >
+//                 <div className="flex items-start justify-between mb-4">
+//                   <div
+//                     className={`p-3 rounded-lg ${card.bgColor} group-hover:scale-110 transition-transform duration-300`}
+//                   >
+//                     <Icon className={`w-6 h-6 ${card.textColor}`} />
+//                   </div>
+//                   <div className={`h-8 w-8 rounded-lg bg-gradient-to-br ${card.color} opacity-0 group-hover:opacity-20 transition-opacity`}></div>
+//                 </div>
+//                 <p className="text-slate-400 text-sm font-medium mb-1">{card.label}</p>
+//                 <p className="text-2xl font-bold text-white">{card.value}</p>
+//               </div>
+//             );
+//           })}
+//         </div>
+//       </div>
+
+//       {/* Rule Statistics */}
+//       <div className="mb-12">
+//         <h3 className="text-lg font-semibold text-white mb-5 flex items-center gap-2">
+//           <BarChart3 className="w-5 h-5 text-indigo-400" />
+//           Rule Statistics
+//         </h3>
+//         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+//           {ruleCards.map((card, index) => {
+//             const Icon = card.icon;
+//             return (
+//               <div
+//                 key={index}
+//                 className="group bg-slate-800/50 backdrop-blur-sm border border-slate-700 hover:border-indigo-500/50 rounded-lg p-6 transition-all duration-300 hover:shadow-lg hover:shadow-indigo-500/10"
+//               >
+//                 <div className="flex items-start justify-between mb-4">
+//                   <div
+//                     className={`p-3 rounded-lg ${card.bgColor} group-hover:scale-110 transition-transform duration-300`}
+//                   >
+//                     <Icon className={`w-6 h-6 ${card.textColor}`} />
+//                   </div>
+//                   <div className={`h-8 w-8 rounded-lg bg-gradient-to-br ${card.color} opacity-0 group-hover:opacity-20 transition-opacity`}></div>
+//                 </div>
+//                 <p className="text-slate-400 text-sm font-medium mb-1">{card.label}</p>
+//                 <p className="text-2xl font-bold text-white">{card.value}</p>
+//               </div>
+//             );
+//           })}
+//         </div>
+//       </div>
+
+//       {/* Summary Section */}
+//       <div className="bg-gradient-to-br from-indigo-600/20 to-teal-600/20 border border-indigo-500/30 rounded-lg p-8">
+//         <h3 className="text-lg font-semibold text-white mb-4">System Overview</h3>
+//         <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+//           <div>
+//             <p className="text-slate-400 text-sm mb-2">Match Success Rate</p>
+//             <div className="flex items-end gap-2">
+//               <span className="text-3xl font-bold text-green-400">{matchRate}%</span>
+//               <span className="text-xs text-slate-500 pb-1">of decisions</span>
+//             </div>
+//           </div>
+//           <div>
+//             <p className="text-slate-400 text-sm mb-2">Active vs Total</p>
+//             <div className="flex items-end gap-2">
+//               <span className="text-3xl font-bold text-indigo-400">{activeRules}</span>
+//               <span className="text-xs text-slate-500 pb-1">/ {rules.length} rules</span>
+//             </div>
+//           </div>
+//           <div>
+//             <p className="text-slate-400 text-sm mb-2">Avg Latency</p>
+//             <div className="flex items-end gap-2">
+//               <span className="text-3xl font-bold text-orange-400">{stats.avgExecutionTime}</span>
+//               <span className="text-xs text-slate-500 pb-1">milliseconds</span>
+//             </div>
+//           </div>
+//           <div>
+//             <p className="text-slate-400 text-sm mb-2">Total Decisions</p>
+//             <div className="flex items-end gap-2">
+//               <span className="text-3xl font-bold text-blue-400">{stats.totalDecisions.toLocaleString()}</span>
+//               <span className="text-xs text-slate-500 pb-1">processed</span>
+//             </div>
+//           </div>
+//         </div>
+//       </div>
+//     </div>
+//   );
+// }
+
+
+import {
+  Activity,
+  TrendingUp,
+  Zap,
+  CheckCircle,
+  BarChart3,
+  Users,
+  Gauge,
+} from "lucide-react";
+import { useDecisionStats, useDecisionLogs } from "../hooks/useDecisionLogs";
+import { useRules } from "../hooks/useRules";
+
+// 📊 Recharts imports
+import {
+  LineChart,
+  Line,
+  XAxis,
+  YAxis,
+  Tooltip,
+  CartesianGrid,
+  ResponsiveContainer,
+} from "recharts";
 
 export default function Analytics() {
-  const { stats, loading: statsLoading } = useDecisionStats();
+  const { stats, loading: statsLoading } = useDecisionStats(); // calls /analytics
   const { rules, loading: rulesLoading } = useRules();
 
-  // ✅ FIXED: Changed from r.is_active to r.active
-  const activeRules = rules.filter((r) => r.active).length;
-  const inactiveRules = rules.filter((r) => !r.active).length;
+  // Load last 50 decision logs for chart
+  const { decisionLogs } = useDecisionLogs(50);
+
+  // Backend now uses "active" flag
+  const activeRules = rules.filter((r: any) => r.active).length;
+  const inactiveRules = rules.filter((r: any) => !r.active).length;
+
   const matchRate =
     stats.totalDecisions > 0
       ? Math.round((stats.matchedDecisions / stats.totalDecisions) * 100)
       : 0;
 
+  // Group logs by date for Recharts
+  const decisionsByDay = decisionLogs.reduce((acc: any, log: any) => {
+    const day = new Date(log.createdAt).toLocaleDateString();
+    if (!acc[day]) acc[day] = { date: day, total: 0, matched: 0 };
+    acc[day].total += 1;
+    if (log.matched) acc[day].matched += 1;
+    return acc;
+  }, {} as Record<string, { date: string; total: number; matched: number }>);
+
+  const chartData = Object.values(decisionsByDay);
+
   const statCards = [
     {
-      label: 'Total Decisions',
+      label: "Total Decisions",
       value: stats.totalDecisions.toLocaleString(),
       icon: Activity,
-      color: 'from-blue-600 to-cyan-600',
-      bgColor: 'bg-blue-500/10',
-      textColor: 'text-blue-400',
+      color: "from-blue-600 to-cyan-600",
+      bgColor: "bg-blue-500/10",
+      textColor: "text-blue-400",
     },
     {
-      label: 'Matched Decisions',
+      label: "Matched Decisions",
       value: stats.matchedDecisions.toLocaleString(),
       icon: CheckCircle,
-      color: 'from-green-600 to-emerald-600',
-      bgColor: 'bg-green-500/10',
-      textColor: 'text-green-400',
+      color: "from-green-600 to-emerald-600",
+      bgColor: "bg-green-500/10",
+      textColor: "text-green-400",
     },
     {
-      label: 'Match Rate',
+      label: "Match Rate",
       value: `${matchRate}%`,
       icon: TrendingUp,
-      color: 'from-purple-600 to-pink-600',
-      bgColor: 'bg-purple-500/10',
-      textColor: 'text-purple-400',
+      color: "from-purple-600 to-pink-600",
+      bgColor: "bg-purple-500/10",
+      textColor: "text-purple-400",
     },
     {
-      label: 'Avg Execution Time',
+      label: "Avg Execution Time",
       value: `${stats.avgExecutionTime}ms`,
       icon: Zap,
-      color: 'from-orange-600 to-red-600',
-      bgColor: 'bg-orange-500/10',
-      textColor: 'text-orange-400',
+      color: "from-orange-600 to-red-600",
+      bgColor: "bg-orange-500/10",
+      textColor: "text-orange-400",
     },
   ];
 
   const ruleCards = [
     {
-      label: 'Total Rules',
+      label: "Total Rules",
       value: rules.length,
       icon: BarChart3,
-      color: 'from-indigo-600 to-indigo-700',
-      bgColor: 'bg-indigo-500/10',
-      textColor: 'text-indigo-400',
+      color: "from-indigo-600 to-indigo-700",
+      bgColor: "bg-indigo-500/10",
+      textColor: "text-indigo-400",
     },
     {
-      label: 'Active Rules',
+      label: "Active Rules",
       value: activeRules,
       icon: CheckCircle,
-      color: 'from-green-600 to-emerald-600',
-      bgColor: 'bg-green-500/10',
-      textColor: 'text-green-400',
+      color: "from-green-600 to-emerald-600",
+      bgColor: "bg-green-500/10",
+      textColor: "text-green-400",
     },
     {
-      label: 'Inactive Rules',
+      label: "Inactive Rules",
       value: inactiveRules,
       icon: Gauge,
-      color: 'from-slate-600 to-slate-700',
-      bgColor: 'bg-slate-500/10',
-      textColor: 'text-slate-400',
+      color: "from-slate-600 to-slate-700",
+      bgColor: "bg-slate-500/10",
+      textColor: "text-slate-400",
     },
     {
-      label: 'Decisions Today',
+      label: "Decisions Today",
       value: stats.decisionsToday,
       icon: Users,
-      color: 'from-cyan-600 to-blue-600',
-      bgColor: 'bg-cyan-500/10',
-      textColor: 'text-cyan-400',
+      color: "from-cyan-600 to-blue-600",
+      bgColor: "bg-cyan-500/10",
+      textColor: "text-cyan-400",
     },
   ];
 
@@ -683,8 +923,12 @@ export default function Analytics() {
     <div>
       {/* Header */}
       <div className="mb-10">
-        <h2 className="text-3xl font-bold text-white mb-1">Analytics & Insights</h2>
-        <p className="text-slate-400">Monitor rule performance and decision metrics</p>
+        <h2 className="text-3xl font-bold text-white mb-1">
+          Analytics &amp; Insights
+        </h2>
+        <p className="text-slate-400">
+          Monitor rule performance and decision metrics
+        </p>
       </div>
 
       {/* Decision Stats */}
@@ -707,9 +951,13 @@ export default function Analytics() {
                   >
                     <Icon className={`w-6 h-6 ${card.textColor}`} />
                   </div>
-                  <div className={`h-8 w-8 rounded-lg bg-gradient-to-br ${card.color} opacity-0 group-hover:opacity-20 transition-opacity`}></div>
+                  <div
+                    className={`h-8 w-8 rounded-lg bg-gradient-to-br ${card.color} opacity-0 group-hover:opacity-20 transition-opacity`}
+                  ></div>
                 </div>
-                <p className="text-slate-400 text-sm font-medium mb-1">{card.label}</p>
+                <p className="text-slate-400 text-sm font-medium mb-1">
+                  {card.label}
+                </p>
                 <p className="text-2xl font-bold text-white">{card.value}</p>
               </div>
             );
@@ -737,9 +985,13 @@ export default function Analytics() {
                   >
                     <Icon className={`w-6 h-6 ${card.textColor}`} />
                   </div>
-                  <div className={`h-8 w-8 rounded-lg bg-gradient-to-br ${card.color} opacity-0 group-hover:opacity-20 transition-opacity`}></div>
+                  <div
+                    className={`h-8 w-8 rounded-lg bg-gradient-to-br ${card.color} opacity-0 group-hover:opacity-20 transition-opacity`}
+                  ></div>
                 </div>
-                <p className="text-slate-400 text-sm font-medium mb-1">{card.label}</p>
+                <p className="text-slate-400 text-sm font-medium mb-1">
+                  {card.label}
+                </p>
                 <p className="text-2xl font-bold text-white">{card.value}</p>
               </div>
             );
@@ -747,35 +999,93 @@ export default function Analytics() {
         </div>
       </div>
 
+      {/* Decisions over time chart */}
+      <div className="mb-12">
+        <h3 className="text-lg font-semibold text-white mb-5 flex items-center gap-2">
+          <Activity className="w-5 h-5 text-indigo-400" />
+          Decisions over time
+        </h3>
+        <div className="bg-slate-800/50 backdrop-blur-sm border border-slate-700 rounded-lg p-6">
+          <div className="h-80">
+            <ResponsiveContainer width="100%" height="100%">
+              <LineChart data={chartData as any[]}>
+                <CartesianGrid stroke="#1f2937" strokeDasharray="3 3" />
+                <XAxis
+                  dataKey="date"
+                  tick={{ fill: "#9ca3af", fontSize: 12 }}
+                />
+                <YAxis tick={{ fill: "#9ca3af", fontSize: 12 }} />
+                <Tooltip
+                  contentStyle={{
+                    backgroundColor: "#020617",
+                    border: "1px solid #4b5563",
+                    borderRadius: "0.5rem",
+                  }}
+                  labelStyle={{ color: "#e5e7eb" }}
+                />
+                <Line
+                  type="monotone"
+                  dataKey="total"
+                  stroke="#6366f1"
+                  strokeWidth={2}
+                  dot={false}
+                  name="Total decisions"
+                />
+                <Line
+                  type="monotone"
+                  dataKey="matched"
+                  stroke="#22c55e"
+                  strokeWidth={2}
+                  dot={false}
+                  name="Matched"
+                />
+              </LineChart>
+            </ResponsiveContainer>
+          </div>
+        </div>
+      </div>
+
       {/* Summary Section */}
       <div className="bg-gradient-to-br from-indigo-600/20 to-teal-600/20 border border-indigo-500/30 rounded-lg p-8">
-        <h3 className="text-lg font-semibold text-white mb-4">System Overview</h3>
+        <h3 className="text-lg font-semibold text-white mb-4">
+          System Overview
+        </h3>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
           <div>
             <p className="text-slate-400 text-sm mb-2">Match Success Rate</p>
             <div className="flex items-end gap-2">
-              <span className="text-3xl font-bold text-green-400">{matchRate}%</span>
+              <span className="text-3xl font-bold text-green-400">
+                {matchRate}%
+              </span>
               <span className="text-xs text-slate-500 pb-1">of decisions</span>
             </div>
           </div>
           <div>
             <p className="text-slate-400 text-sm mb-2">Active vs Total</p>
-            <div className="flex items-end gap-2">
-              <span className="text-3xl font-bold text-indigo-400">{activeRules}</span>
-              <span className="text-xs text-slate-500 pb-1">/ {rules.length} rules</span>
+            <div className="flex.items-end gap-2">
+              <span className="text-3xl font-bold text-indigo-400">
+                {activeRules}
+              </span>
+              <span className="text-xs text-slate-500 pb-1">
+                / {rules.length} rules
+              </span>
             </div>
           </div>
           <div>
             <p className="text-slate-400 text-sm mb-2">Avg Latency</p>
             <div className="flex items-end gap-2">
-              <span className="text-3xl font-bold text-orange-400">{stats.avgExecutionTime}</span>
+              <span className="text-3xl font-bold text-orange-400">
+                {stats.avgExecutionTime}
+              </span>
               <span className="text-xs text-slate-500 pb-1">milliseconds</span>
             </div>
           </div>
           <div>
             <p className="text-slate-400 text-sm mb-2">Total Decisions</p>
             <div className="flex items-end gap-2">
-              <span className="text-3xl font-bold text-blue-400">{stats.totalDecisions.toLocaleString()}</span>
+              <span className="text-3xl font-bold text-blue-400">
+                {stats.totalDecisions.toLocaleString()}
+              </span>
               <span className="text-xs text-slate-500 pb-1">processed</span>
             </div>
           </div>
@@ -784,3 +1094,4 @@ export default function Analytics() {
     </div>
   );
 }
+

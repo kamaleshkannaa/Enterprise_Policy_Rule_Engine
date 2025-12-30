@@ -494,8 +494,364 @@
 //   );
 // }
 
+
+
+// import { useState } from "react";
+// import { Play, Plus, Trash2, AlertCircle, CheckCircle, Clock, Zap } from "lucide-react";
+
+// interface MatchedRule {
+//   id: number;
+//   name: string;
+//   description: string;
+//   priority: number;
+// }
+
+// interface EvaluateResult {
+//   matchedRules: MatchedRule[];
+//   evaluationTime: number;
+//   totalRulesChecked: number;
+// }
+
+// export default function RuleTester() {
+//   const [conditions, setConditions] = useState<Record<string, any>>({
+//     age: 30,
+//     salary: 45000,
+//   });
+
+//   const [result, setResult] = useState<EvaluateResult | null>(null);
+//   const [evaluating, setEvaluating] = useState(false);
+//   const [error, setError] = useState<string | null>(null);
+
+//   const handleAddCondition = () => {
+//     const newKey = `field_${Object.keys(conditions).length}`;
+//     setConditions({ ...conditions, [newKey]: "" });
+//   };
+
+//   const handleUpdateCondition = (key: string, value: any) => {
+//     let finalValue: any = value;
+//     if (!isNaN(value) && value !== "") {
+//       finalValue = Number(value);
+//     }
+//     setConditions({ ...conditions, [key]: finalValue });
+//   };
+
+//   const handleRemoveCondition = (key: string) => {
+//     if (Object.keys(conditions).length > 1) {
+//       const cloned = { ...conditions };
+//       delete cloned[key];
+//       setConditions(cloned);
+//     }
+//   };
+
+//   const handleEvaluate = async () => {
+//     try {
+//       setError(null);
+//       setResult(null);
+//       setEvaluating(true);
+
+//       const start = performance.now();
+
+//       // IMPORTANT: backend returns plain text (e.g. "Basic Loan Approval")
+//       const res = await fetch("http://localhost:8080/api/rules/evaluate", {
+//         method: "POST",
+//         headers: { "Content-Type": "application/json" },
+//         body: JSON.stringify(conditions),
+//       });
+
+//       if (!res.ok) {
+//         throw new Error(`HTTP ${res.status}`);
+//       }
+
+//       const decisionText = await res.text(); // e.g. "Basic Loan Approval" or "NO_MATCH"
+//       const end = performance.now();
+
+//       if (decisionText === "NO_MATCH") {
+//         setResult({
+//           matchedRules: [],
+//           evaluationTime: Math.round(end - start),
+//           totalRulesChecked: 0,
+//         });
+//       } else {
+//         setResult({
+//           matchedRules: [
+//             {
+//               id: 0,
+//               name: decisionText,
+//               description: "",
+//               priority: 0,
+//             },
+//           ],
+//           evaluationTime: Math.round(end - start),
+//           totalRulesChecked: 1,
+//         });
+//       }
+//     } catch (err: any) {
+//       console.error("Evaluation error:", err);
+//       setError(
+//         err?.message ||
+//           "Failed to evaluate conditions. Make sure backend is running on port 8080."
+//       );
+//     } finally {
+//       setEvaluating(false);
+//     }
+//   };
+
+//   const loadExample = (example: Record<string, any>) => {
+//     setConditions(example);
+//     setResult(null);
+//     setError(null);
+//   };
+
+//   const examples = [
+//     { name: "Low Salary Case", data: { age: 22, salary: 15000 } },
+//     { name: "High Salary Case", data: { age: 45, salary: 80000 } },
+//     { name: "Senior Citizen", data: { age: 70, salary: 50000 } },
+//   ];
+
+//   return (
+//     <div className="space-y-6">
+//       {/* Header */}
+//       <div>
+//         <h2 className="text-3xl font-bold text-white mb-1">Evaluate Conditions</h2>
+//         <p className="text-slate-400">Add your conditions and find which rules match</p>
+//       </div>
+
+//       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+//         {/* LEFT PANEL */}
+//         <div className="lg:col-span-1 space-y-6">
+//           {/* Conditions */}
+//           <div className="bg-slate-800/50 backdrop-blur-sm border border-slate-700 rounded-lg p-6 space-y-4">
+//             <h3 className="text-lg font-semibold text-white">Conditions</h3>
+
+//             <div className="space-y-3">
+//               {Object.entries(conditions).map(([key, value]) => (
+//                 <div key={key} className="flex gap-2 items-end">
+//                   <div className="flex-1">
+//                     <label className="block text-xs font-medium text-slate-400 mb-1">
+//                       {key}
+//                     </label>
+//                     <input
+//                       type="text"
+//                       value={value}
+//                       onChange={(e) => handleUpdateCondition(key, e.target.value)}
+//                       className="w-full px-3 py-2 bg-slate-700 border border-slate-600 rounded-lg text-white text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+//                       placeholder="Enter value"
+//                     />
+//                   </div>
+//                   {Object.keys(conditions).length > 1 && (
+//                     <button
+//                       onClick={() => handleRemoveCondition(key)}
+//                       className="px-3 py-2 bg-red-500/20 hover:bg-red-500/30 text-red-400 rounded-lg transition-colors"
+//                       title="Remove this condition"
+//                     >
+//                       <Trash2 className="w-4 h-4" />
+//                     </button>
+//                   )}
+//                 </div>
+//               ))}
+//             </div>
+
+//             <button
+//               onClick={handleAddCondition}
+//               className="w-full flex items-center justify-center gap-2 px-4 py-2 text-sm bg-slate-700/50 hover:bg-slate-700 text-slate-300 rounded-lg border border-slate-600 transition-colors"
+//             >
+//               <Plus className="w-4 h-4" />
+//               Add Condition
+//             </button>
+//           </div>
+
+//           {/* JSON Preview */}
+//           <div className="bg-slate-800/50 backdrop-blur-sm border border-slate-700 rounded-lg p-6">
+//             <label className="block text-sm font-semibold text-white mb-3">
+//               JSON Preview
+//             </label>
+//             <pre className="p-3 bg-slate-900/50 border border-slate-700 rounded-lg text-xs text-slate-300 overflow-auto max-h-40 font-mono">
+//               {JSON.stringify(conditions, null, 2)}
+//             </pre>
+//           </div>
+
+//           {/* Quick Examples */}
+//           <div className="bg-slate-800/50 backdrop-blur-sm border border-slate-700 rounded-lg p-6 space-y-3">
+//             <p className="text-sm font-semibold text-white">Quick Examples:</p>
+//             {examples.map((ex) => (
+//               <button
+//                 key={ex.name}
+//                 onClick={() => loadExample(ex.data)}
+//                 className="w-full text-left px-4 py-2 text-sm bg-slate-700/50 hover:bg-slate-700 text-slate-300 rounded-lg transition-colors"
+//               >
+//                 {ex.name}
+//               </button>
+//             ))}
+//           </div>
+
+//           {/* Evaluate Button */}
+//           <button
+//             onClick={handleEvaluate}
+//             disabled={evaluating}
+//             className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed text-white rounded-lg font-semibold transition-colors"
+//           >
+//             <Play className="w-4 h-4" />
+//             {evaluating ? "Evaluating..." : "Evaluate Rules"}
+//           </button>
+//         </div>
+
+//         {/* RIGHT PANEL */}
+//         <div className="lg:col-span-2 space-y-4">
+//           {error && (
+//             <div className="bg-red-500/10 border border-red-500/30 rounded-lg p-4 flex gap-3 items-start">
+//               <AlertCircle className="w-5 h-5 text-red-400 flex-shrink-0 mt-0.5" />
+//               <div>
+//                 <p className="text-sm text-red-300 font-semibold">Error</p>
+//                 <p className="text-sm text-red-300 mt-1">{error}</p>
+//               </div>
+//             </div>
+//           )}
+
+//           {result ? (
+//             <>
+//               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+//                 <div
+//                   className={`rounded-lg p-4 border ${
+//                     result.matchedRules.length > 0
+//                       ? "bg-green-500/10 border-green-500/30"
+//                       : "bg-orange-500/10 border-orange-500/30"
+//                   }`}
+//                 >
+//                   <div className="flex items-center gap-2 mb-2">
+//                     {result.matchedRules.length > 0 ? (
+//                       <CheckCircle className="w-5 h-5 text-green-400" />
+//                     ) : (
+//                       <AlertCircle className="w-5 h-5 text-orange-400" />
+//                     )}
+//                     <span
+//                       className={`font-semibold ${
+//                         result.matchedRules.length > 0
+//                           ? "text-green-300"
+//                           : "text-orange-300"
+//                       }`}
+//                     >
+//                       {result.matchedRules.length > 0
+//                         ? "Matching Rules"
+//                         : "No Matches"}
+//                     </span>
+//                   </div>
+//                   <p
+//                     className={`text-3xl font-bold ${
+//                       result.matchedRules.length > 0
+//                         ? "text-green-400"
+//                         : "text-orange-400"
+//                     }`}
+//                   >
+//                     {result.matchedRules.length}
+//                   </p>
+//                   {result.totalRulesChecked > 0 && (
+//                     <p className="text-xs text-slate-400 mt-2">
+//                       out of {result.totalRulesChecked} rules checked
+//                     </p>
+//                   )}
+//                 </div>
+
+//                 <div className="rounded-lg p-4 border bg-indigo-500/10 border-indigo-500/30">
+//                   <div className="flex items-center gap-2 mb-2">
+//                     <Clock className="w-5 h-5 text-indigo-400" />
+//                     <span className="font-semibold text-indigo-300">
+//                       Evaluation Time
+//                     </span>
+//                   </div>
+//                   <p className="text-3xl font-bold text-indigo-400">
+//                     {result.evaluationTime}ms
+//                   </p>
+//                 </div>
+//               </div>
+
+//               {result.matchedRules.length > 0 ? (
+//                 <div className="bg-slate-800/50 backdrop-blur-sm border border-slate-700 rounded-lg p-6">
+//                   <h4 className="font-semibold text-white mb-4 flex items-center gap-2">
+//                     <Zap className="w-5 h-5 text-yellow-400" />
+//                     Matching Rules ({result.matchedRules.length})
+//                   </h4>
+//                   <div className="space-y-3">
+//                     {result.matchedRules.map((rule, idx) => (
+//                       <div
+//                         key={rule.id}
+//                         className="p-4 bg-slate-700/50 rounded-lg border border-slate-600 hover:border-indigo-500/50 hover:bg-slate-700/70 transition-all"
+//                       >
+//                         <div className="flex items-start justify-between mb-2">
+//                           <div className="flex-1">
+//                             <div className="flex items-center gap-2 mb-1">
+//                               <span className="text-xs font-semibold bg-indigo-500/20 text-indigo-300 px-2 py-1 rounded">
+//                                 #{idx + 1}
+//                               </span>
+//                               <h5 className="font-semibold text-white text-lg">
+//                                 {rule.name}
+//                               </h5>
+//                             </div>
+//                             {rule.description && (
+//                               <p className="text-sm text-slate-400">
+//                                 {rule.description}
+//                               </p>
+//                             )}
+//                           </div>
+//                           <div>
+//                             <span className="text-xs font-semibold bg-orange-500/20 text-orange-300 px-2 py-1 rounded whitespace-nowrap">
+//                               Priority {rule.priority}
+//                             </span>
+//                           </div>
+//                         </div>
+//                       </div>
+//                     ))}
+//                   </div>
+//                 </div>
+//               ) : (
+//                 <div className="bg-slate-800/50 backdrop-blur-sm border border-slate-700 rounded-lg p-8 text-center">
+//                   <AlertCircle className="w-12 h-12 text-slate-600 mx-auto mb-4 opacity-50" />
+//                   <p className="text-slate-400 font-medium mb-2">
+//                     No Matching Rules
+//                   </p>
+//                   <p className="text-sm text-slate-500">
+//                     The provided conditions don't match any active rules. Try
+//                     adjusting your conditions.
+//                   </p>
+//                 </div>
+//               )}
+//             </>
+//           ) : (
+//             <div className="bg-slate-800/50 backdrop-blur-sm border border-dashed border-slate-600 rounded-lg p-12 text-center h-full flex flex-col items-center justify-center">
+//               <Play className="w-12 h-12 text-slate-600 mb-4 opacity-50" />
+//               <p className="text-slate-400 font-medium">
+//                 Click &quot;Evaluate Rules&quot; to see matching rules
+//               </p>
+//             </div>
+//           )}
+//         </div>
+//       </div>
+
+//       <div className="bg-indigo-500/10 border border-indigo-500/30 rounded-lg p-4">
+//         <p className="text-sm text-indigo-300">
+//           <span className="font-semibold">💡 How it works:</span> Add or modify
+//           your conditions, then click &quot;Evaluate Rules&quot;. The backend
+//           returns a decision string, which is shown as a matched rule when it is
+//           not &quot;NO_MATCH&quot;.
+//         </p>
+//       </div>
+//     </div>
+//   );
+// }
+
+
+
+
+
 import { useState } from "react";
-import { Play, Plus, Trash2, AlertCircle, CheckCircle, Clock, Zap } from "lucide-react";
+import {
+  Play,
+  Plus,
+  Trash2,
+  AlertCircle,
+  CheckCircle,
+  Clock,
+  Zap,
+} from "lucide-react";
 
 interface MatchedRule {
   id: number;
@@ -510,7 +866,13 @@ interface EvaluateResult {
   totalRulesChecked: number;
 }
 
-export default function RuleTester() {
+type RuleTesterProps = {
+  mode?: "admin" | "user"; // 👈 NEW
+};
+
+export default function RuleTester({ mode = "admin" }: RuleTesterProps) {
+  const isUser = mode === "user"; // 👈 NEW
+
   const [conditions, setConditions] = useState<Record<string, any>>({
     age: 30,
     salary: 45000,
@@ -549,7 +911,7 @@ export default function RuleTester() {
 
       const start = performance.now();
 
-      // IMPORTANT: backend returns plain text (e.g. "Basic Loan Approval")
+      // Backend returns plain text (e.g. "Basic Loan Approval")
       const res = await fetch("http://localhost:8080/api/rules/evaluate", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -587,7 +949,7 @@ export default function RuleTester() {
       console.error("Evaluation error:", err);
       setError(
         err?.message ||
-          "Failed to evaluate conditions. Make sure backend is running on port 8080."
+          "Failed to evaluate conditions. Make sure backend is running on port 8080.",
       );
     } finally {
       setEvaluating(false);
@@ -610,8 +972,14 @@ export default function RuleTester() {
     <div className="space-y-6">
       {/* Header */}
       <div>
-        <h2 className="text-3xl font-bold text-white mb-1">Evaluate Conditions</h2>
-        <p className="text-slate-400">Add your conditions and find which rules match</p>
+        <h2 className="text-3xl font-bold text-white mb-1">
+          {isUser ? "Execute Rule" : "Evaluate Conditions"}
+        </h2>
+        <p className="text-slate-400">
+          {isUser
+            ? "Provide your data and execute the rule engine to see the decision."
+            : "Add your conditions and find which rules match"}
+        </p>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -669,18 +1037,20 @@ export default function RuleTester() {
           </div>
 
           {/* Quick Examples */}
-          <div className="bg-slate-800/50 backdrop-blur-sm border border-slate-700 rounded-lg p-6 space-y-3">
-            <p className="text-sm font-semibold text-white">Quick Examples:</p>
-            {examples.map((ex) => (
-              <button
-                key={ex.name}
-                onClick={() => loadExample(ex.data)}
-                className="w-full text-left px-4 py-2 text-sm bg-slate-700/50 hover:bg-slate-700 text-slate-300 rounded-lg transition-colors"
-              >
-                {ex.name}
-              </button>
-            ))}
-          </div>
+          {!isUser && (
+            <div className="bg-slate-800/50 backdrop-blur-sm border border-slate-700 rounded-lg p-6 space-y-3">
+              <p className="text-sm font-semibold text-white">Quick Examples:</p>
+              {examples.map((ex) => (
+                <button
+                  key={ex.name}
+                  onClick={() => loadExample(ex.data)}
+                  className="w-full text-left px-4 py-2 text-sm bg-slate-700/50 hover:bg-slate-700 text-slate-300 rounded-lg transition-colors"
+                >
+                  {ex.name}
+                </button>
+              ))}
+            </div>
+          )}
 
           {/* Evaluate Button */}
           <button
@@ -807,7 +1177,7 @@ export default function RuleTester() {
                     No Matching Rules
                   </p>
                   <p className="text-sm text-slate-500">
-                    The provided conditions don't match any active rules. Try
+                    The provided conditions don&apos;t match any active rules. Try
                     adjusting your conditions.
                   </p>
                 </div>

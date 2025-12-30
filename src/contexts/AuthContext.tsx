@@ -78,6 +78,86 @@
 // };
 
 
+// import { createContext, useContext, useEffect, useState, ReactNode } from "react";
+// import {
+//   User,
+//   createUserWithEmailAndPassword,
+//   signInWithEmailAndPassword,
+//   signOut,
+//   onAuthStateChanged,
+//   updateProfile,
+//   GoogleAuthProvider,
+//   signInWithPopup,
+// } from "firebase/auth";
+// import { auth } from "../firebase/firebase";
+
+// interface AuthContextType {
+//   currentUser: User | null;
+//   login: (email: string, password: string) => Promise<void>;
+//   signup: (email: string, password: string, displayName: string) => Promise<void>;
+//   loginWithGoogle: () => Promise<void>;
+//   logout: () => Promise<void>;
+//   loading: boolean;
+// }
+
+// const AuthContext = createContext<AuthContextType | undefined>(undefined);
+
+// export const useAuth = () => {
+//   const context = useContext(AuthContext);
+//   if (!context) {
+//     throw new Error("useAuth must be used within an AuthProvider");
+//     }
+//   return context;
+// };
+
+// export const AuthProvider = ({ children }: { children: ReactNode }) => {
+//   const [currentUser, setCurrentUser] = useState<User | null>(null);
+//   const [loading, setLoading] = useState(true);
+
+//   const signup = async (email: string, password: string, displayName: string) => {
+//     const cred = await createUserWithEmailAndPassword(auth, email, password);
+//     await updateProfile(cred.user, { displayName });
+//   };
+
+//   const login = async (email: string, password: string) => {
+//     await signInWithEmailAndPassword(auth, email, password);
+//   };
+
+//   const loginWithGoogle = async () => {
+//     const provider = new GoogleAuthProvider();
+//     await signInWithPopup(auth, provider);
+//   };
+
+//   const logout = async () => {
+//     await signOut(auth);
+//   };
+
+//   useEffect(() => {
+//     const unsubscribe = onAuthStateChanged(auth, (user) => {
+//       setCurrentUser(user);
+//       setLoading(false);
+//     });
+//     return unsubscribe;
+//   }, []);
+
+//   return (
+//     <AuthContext.Provider
+//       value={{
+//         currentUser,
+//         login,
+//         signup,
+//         loginWithGoogle,
+//         logout,
+//         loading,
+//       }}
+//     >
+//       {children} {/* ✅ FIX: DO NOT BLOCK RENDERING */}
+//     </AuthContext.Provider>
+//   );
+// };
+
+
+// src/contexts/AuthContext.tsx (or wherever this file lives)
 import { createContext, useContext, useEffect, useState, ReactNode } from "react";
 import {
   User,
@@ -91,8 +171,11 @@ import {
 } from "firebase/auth";
 import { auth } from "../firebase/firebase";
 
+type Role = "admin" | "user";
+
 interface AuthContextType {
   currentUser: User | null;
+  role: Role | null;                           // 👈 NEW
   login: (email: string, password: string) => Promise<void>;
   signup: (email: string, password: string, displayName: string) => Promise<void>;
   loginWithGoogle: () => Promise<void>;
@@ -106,12 +189,13 @@ export const useAuth = () => {
   const context = useContext(AuthContext);
   if (!context) {
     throw new Error("useAuth must be used within an AuthProvider");
-    }
+  }
   return context;
 };
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [currentUser, setCurrentUser] = useState<User | null>(null);
+  const [role, setRole] = useState<Role | null>(null);   // 👈 NEW
   const [loading, setLoading] = useState(true);
 
   const signup = async (email: string, password: string, displayName: string) => {
@@ -135,6 +219,15 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
       setCurrentUser(user);
+
+      if (user?.email) {
+        const email = user.email.toLowerCase();
+setRole(email === "admin@example.com" ? "admin" : "user");
+
+      } else {
+        setRole(null);
+      }
+
       setLoading(false);
     });
     return unsubscribe;
@@ -144,6 +237,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     <AuthContext.Provider
       value={{
         currentUser,
+        role,
         login,
         signup,
         loginWithGoogle,
@@ -151,7 +245,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         loading,
       }}
     >
-      {children} {/* ✅ FIX: DO NOT BLOCK RENDERING */}
+      {children}
     </AuthContext.Provider>
   );
 };

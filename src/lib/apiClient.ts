@@ -120,7 +120,7 @@
 
 // src/lib/apiClient.ts
 
-const API_BASE = "http://localhost:8080/api";
+const API_BASE = import.meta.env.VITE_API_BASE_URL;
 
 async function handleResponse(res: Response) {
   if (!res.ok) {
