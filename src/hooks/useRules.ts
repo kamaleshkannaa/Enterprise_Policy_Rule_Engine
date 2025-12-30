@@ -294,24 +294,24 @@
 
 
 import { useEffect, useState } from "react";
-import { get, post, put, del } from '../lib/apiClient';
+import { get, put, del } from "../lib/apiClient";
 
 /**
- * ✅ FIXED: Fetch all rules with updateRule and refetch support
- * Now sends correct field names for backend: "active" instead of "is_active"
+ * =========================
+ * RULES LIST HOOK
+ * =========================
  */
 export function useRules() {
-  const [rules, setRules] = useState([]);
+  const [rules, setRules] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
-  // ✅ LOAD RULES ON MOUNT
   const loadRules = async () => {
     try {
       setLoading(true);
-      const data = await get('/rules');
+      const data = await get("/rules"); // -> /api/rules
       setRules(data);
     } catch (err) {
-      console.error('Error loading rules:', err);
+      console.error("Error loading rules:", err);
     } finally {
       setLoading(false);
     }
@@ -321,53 +321,34 @@ export function useRules() {
     loadRules();
   }, []);
 
-  // ✅ UPDATE RULE - Send "active" field name that backend expects
-  const updateRule = async (id: string | number, updates: any) => {
-    try {
-      // ✅ Convert "is_active" to "active" for backend
-      const backendUpdates = { ...updates };
-      if ('is_active' in backendUpdates) {
-        backendUpdates.active = backendUpdates.is_active;
-        delete backendUpdates.is_active;
-      }
+  const updateRule = async (id: number, updates: any) => {
+    const backendUpdates = { ...updates };
 
-      const response = await put(`/rules/${id}`, backendUpdates);
-      return response;
-    } catch (err) {
-      console.error('Error updating rule:', err);
-      throw err;
+    // frontend → backend mapping
+    if ("is_active" in backendUpdates) {
+      backendUpdates.active = backendUpdates.is_active;
+      delete backendUpdates.is_active;
     }
+
+    return put(`/rules/${id}`, backendUpdates);
   };
 
-  // ✅ DELETE RULE
   const deleteRule = async (id: number) => {
-    try {
-      await del(`/rules/${id}`);
-      setRules(prev => prev.filter(r => r.id !== id));
-    } catch (err) {
-      console.error('Error deleting rule:', err);
-      throw err;
-    }
+    await del(`/rules/${id}`);
+    setRules(prev => prev.filter(r => r.id !== id));
   };
 
-  // ✅ REFETCH FUNCTION (THIS IS THE CRITICAL FIX!)
-  const refetch = async () => {
-    try {
-      const data = await get('/rules');
-      setRules(data);
-    } catch (err) {
-      console.error('Error refetching rules:', err);
-    }
-  };
+  const refetch = loadRules;
 
-  return { 
-    rules, 
-    loading, 
-    deleteRule, 
-    updateRule,    
-    refetch        
+  return {
+    rules,
+    loading,
+    updateRule,
+    deleteRule,
+    refetch,
   };
 }
+
 
 /**
  * Fetch rule details (rule + conditions + actions)

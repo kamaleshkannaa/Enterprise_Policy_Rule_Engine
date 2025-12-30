@@ -1,7 +1,12 @@
 import { useEffect, useState } from "react";
 import { get } from "../lib/apiClient";
 
-export function useRuleDetails(ruleId: string | null) {
+/**
+ * =========================
+ * SINGLE RULE DETAILS
+ * =========================
+ */
+export function useRuleDetails(ruleId: number | null) {
   const [rule, setRule] = useState<any>(null);
   const [conditions, setConditions] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
@@ -11,11 +16,12 @@ export function useRuleDetails(ruleId: string | null) {
 
     setLoading(true);
 
-    get<any>(`/rules/${ruleId}`)
+    get(`/rules/${ruleId}`) // -> /api/rules/{id}
       .then(ruleData => {
         setRule(ruleData);
-        setConditions(ruleData.conditions || []);
+        setConditions(ruleData.conditions ?? []);
       })
+      .catch(err => console.error("Error loading rule details:", err))
       .finally(() => setLoading(false));
   }, [ruleId]);
 
