@@ -292,7 +292,7 @@
 // }
 
 
-
+// src/hooks/useRules.ts
 import { useEffect, useState } from "react";
 import { get, put, del } from "../lib/apiClient";
 
@@ -300,6 +300,10 @@ import { get, put, del } from "../lib/apiClient";
  * =========================
  * RULES LIST HOOK
  * =========================
+ * Uses:
+ *   GET    /api/rules
+ *   PUT    /api/rules/{id}
+ *   DELETE /api/rules/{id}
  */
 export function useRules() {
   const [rules, setRules] = useState<any[]>([]);
@@ -308,8 +312,8 @@ export function useRules() {
   const loadRules = async () => {
     try {
       setLoading(true);
-      const data = await get("/rules"); // -> /api/rules
-      setRules(data);
+      const data = await get("/api/rules");
+      setRules(data ?? []);
     } catch (err) {
       console.error("Error loading rules:", err);
     } finally {
@@ -322,20 +326,30 @@ export function useRules() {
   }, []);
 
   const updateRule = async (id: number, updates: any) => {
-    const backendUpdates = { ...updates };
+    // frontend → backend field mapping
+    const backendUpdates: any = { ...updates };
 
-    // frontend → backend mapping
+    // is_active -> active
     if ("is_active" in backendUpdates) {
       backendUpdates.active = backendUpdates.is_active;
       delete backendUpdates.is_active;
     }
 
-    return put(`/rules/${id}`, backendUpdates);
+    // rule_group_id -> groupId (if still used anywhere)
+    if ("rule_group_id" in backendUpdates) {
+      backendUpdates.groupId = backendUpdates.rule_group_id;
+      delete backendUpdates.rule_group_id;
+    }
+
+    await put(`/api/rules/${id}`, backendUpdates);
+    await loadRules();
   };
 
   const deleteRule = async (id: number) => {
-    await del(`/rules/${id}`);
-    setRules(prev => prev.filter(r => r.id !== id));
+    await del(`/api/rules/${id}`);
+    // optimistic update + ensure refetch
+    setRules((prev) => prev.filter((r) => r.id !== id));
+    await loadRules();
   };
 
   const refetch = loadRules;
@@ -348,6 +362,7 @@ export function useRules() {
     refetch,
   };
 }
+
 
 
 /**

@@ -968,33 +968,35 @@ export default function RuleBuilder({ ruleId, onSave, onCancel }: RuleBuilderPro
   }, [rule]);
 
   // save rule
-  const handleSaveRule = async () => {
-    try {
-      setSaving(true);
+  // save rule
+const handleSaveRule = async () => {
+  try {
+    setSaving(true);
 
-      const payload = {
-        name: formData.name,
-        description: formData.description,
-        priority: formData.priority,
-        active: formData.active,
-        groupId: formData.rule_group_id ? Number(formData.rule_group_id) : null,
-      };
+    const payload = {
+      name: formData.name,
+      description: formData.description,
+      priority: formData.priority,
+      active: formData.active,                     // backend field
+      groupId: formData.rule_group_id
+        ? Number(formData.rule_group_id)
+        : null,                                   // backend field
+    };
 
-      if (!ruleId) {
-        await post("/rules", payload); // -> /api/rules
-      } else {
-        await put(`/rules/${ruleId}`, payload); // -> /api/rules/{id}
-      }
-
-      onSave();
-    } catch (err) {
-      console.error("Error saving rule:", err);
-      alert("Failed to save rule");
-    } finally {
-      setSaving(false);
+    if (!ruleId) {
+      await post("/api/rules", payload);          // was "/rules"
+    } else {
+      await put(`/api/rules/${ruleId}`, payload); // was `/rules/${ruleId}`
     }
-  };
 
+    onSave();
+  } catch (err) {
+    console.error("Error saving rule:", err);
+    alert("Failed to save rule");
+  } finally {
+    setSaving(false);
+  }
+};
   // add condition (stores operator as symbol)
   const handleAddCondition = async () => {
     if (!ruleId) {

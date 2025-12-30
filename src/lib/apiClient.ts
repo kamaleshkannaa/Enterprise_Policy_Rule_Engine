@@ -119,9 +119,10 @@
 
 
 // src/lib/apiClient.ts
-
+// src/lib/apiClient.ts
 const API_BASE = import.meta.env.VITE_API_BASE_URL;
 
+// Generic response handler
 async function handleResponse(res: Response) {
   if (!res.ok) {
     let error;
@@ -132,12 +133,13 @@ async function handleResponse(res: Response) {
     }
     throw error;
   }
+  // assume JSON everywhere except dedicated text handlers
   return res.json();
 }
 
 /* =========================
    GET
-========================= */
+   ========================= */
 export async function get(path: string) {
   const res = await fetch(`${API_BASE}${path}`, {
     method: "GET",
@@ -147,7 +149,7 @@ export async function get(path: string) {
 
 /* =========================
    POST
-========================= */
+   ========================= */
 export async function post(path: string, body: any) {
   const res = await fetch(`${API_BASE}${path}`, {
     method: "POST",
@@ -161,7 +163,7 @@ export async function post(path: string, body: any) {
 
 /* =========================
    PUT
-========================= */
+   ========================= */
 export async function put(path: string, body: any) {
   const res = await fetch(`${API_BASE}${path}`, {
     method: "PUT",
@@ -175,12 +177,11 @@ export async function put(path: string, body: any) {
 
 /* =========================
    DELETE
-========================= */
+   ========================= */
 export async function del(path: string) {
   const res = await fetch(`${API_BASE}${path}`, {
     method: "DELETE",
   });
   return handleResponse(res);
 }
-
 

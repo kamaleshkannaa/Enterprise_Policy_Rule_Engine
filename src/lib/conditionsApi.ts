@@ -40,10 +40,12 @@
 // }
 
 
+// src/lib/conditionsApi.ts
 const API_BASE = import.meta.env.VITE_API_BASE_URL;
 
 /**
  * CREATE condition
+ * POST /api/rules/{ruleId}/conditions
  */
 export async function createCondition(ruleId: number, condition: any) {
   const res = await fetch(
@@ -67,10 +69,14 @@ export async function createCondition(ruleId: number, condition: any) {
 
 /**
  * GET conditions by rule
+ * GET /api/rules/{ruleId}/conditions
  */
 export async function getConditionsByRule(ruleId: number) {
   const res = await fetch(
-    `${API_BASE}/api/rules/${ruleId}/conditions`
+    `${API_BASE}/api/rules/${ruleId}/conditions`,
+    {
+      method: "GET",
+    }
   );
 
   if (!res.ok) {
@@ -82,7 +88,9 @@ export async function getConditionsByRule(ruleId: number) {
 }
 
 /**
- * ✅ DELETE condition (THIS WAS WRONG EARLIER)
+ * DELETE condition
+ * DELETE /api/rules/{ruleId}/conditions/{conditionId}
+ * Critical: deleteCondition(ruleId, conditionId)
  */
 export async function deleteCondition(
   ruleId: number,
@@ -100,8 +108,14 @@ export async function deleteCondition(
     throw new Error(text || `HTTP ${res.status}`);
   }
 
-  return res.text(); // backend returns plain text
+  // backend may return plain text or empty
+  try {
+    return await res.text();
+  } catch {
+    return "";
+  }
 }
+
 
 
 

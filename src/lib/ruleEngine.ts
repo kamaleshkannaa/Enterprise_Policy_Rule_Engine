@@ -142,10 +142,14 @@
 // // export async function evaluateRule(input: any) {
 // //   return post<{ decision: string }>("/evaluate", input);
 // // }
+
+
+// src/lib/ruleEngine.ts
 import { post } from "./apiClient";
 
 /**
  * OPERATORS
+ * (must line up with backend operator strings)
  */
 export const OPERATORS = {
   GREATER_THAN: "greater_than",
@@ -153,7 +157,7 @@ export const OPERATORS = {
   GREATER_THAN_EQUAL: "greater_than_equal",
   LESS_THAN_EQUAL: "less_than_equal",
   EQUALS: "equals",
-};
+} as const;
 
 /**
  * ACTION TYPES
@@ -167,13 +171,14 @@ export const ACTION_TYPES = {
   ESCALATE: "escalate",
   ASSIGN: "assign",
   CALCULATE: "calculate",
-};
+} as const;
 
 /**
- * ✅ Backend rule evaluation
+ * Backend rule evaluation
+ * POST /api/rules/evaluate
  */
 export async function evaluateRule(input: any) {
-  return post("/rules/evaluate", input);
+  return post("/api/rules/evaluate", input);
 }
 
 /**
@@ -182,14 +187,15 @@ export async function evaluateRule(input: any) {
 export function formatOperatorLabel(operator: string): string {
   return operator
     .split("_")
-    .map(w => w.charAt(0).toUpperCase() + w.slice(1))
+    .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
     .join(" ");
 }
 
 export function formatActionTypeLabel(actionType: string): string {
   return actionType
     .split("_")
-    .map(w => w.charAt(0).toUpperCase() + w.slice(1))
+    .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
     .join(" ");
 }
+
 
