@@ -176,20 +176,7 @@ export const ACTION_TYPES = {
  * (This replaces frontend evaluation)
  */
 export async function evaluateRule(input: any) {
-  const res = await fetch("http://localhost:8080/api/engine/evaluate", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify(input),
-  });
-
-  if (!res.ok) {
-    throw new Error("Rule evaluation failed");
-  }
-
-  // ✅ CORRECT: backend already returns JSON
-  return await res.json();
+  return post("/api/engine/evaluate", input);
 }
 
 
