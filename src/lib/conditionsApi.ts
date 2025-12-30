@@ -42,29 +42,17 @@
 
 import { get, post, del } from "./apiClient";
 
-/**
- * CREATE a condition for a rule
- */
-export async function createCondition(ruleId: number, condition: {
-  fieldName: string;
-  operator: string;
-  fieldValue: string;
-}) {
-  return post(`/api/rules/${ruleId}/conditions`, condition);
+export async function createCondition(ruleId: number, condition: any) {
+  return post(`/rules/${ruleId}/conditions`, condition);
 }
 
-/**
- * GET all conditions for a rule
- */
 export async function getConditionsByRule(ruleId: number) {
-  return get(`/api/rules/${ruleId}/conditions`);
+  return get(`/rules/${ruleId}/conditions`);
 }
 
-/**
- * DELETE a condition
- */
-export async function deleteCondition(ruleId: number, conditionId: number) {
-  return del(`/api/rules/${ruleId}/conditions/${conditionId}`);
+export async function deleteCondition(ruleId: number, id: number) {
+  return del(`/rules/${ruleId}/conditions/${id}`);
 }
+
 
 

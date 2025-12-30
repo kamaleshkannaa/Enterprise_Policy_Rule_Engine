@@ -142,23 +142,21 @@
 // // export async function evaluateRule(input: any) {
 // //   return post<{ decision: string }>("/evaluate", input);
 // // }
-
 import { post } from "./apiClient";
 
 /**
- * OPERATORS (used by RuleBuilder UI)
+ * OPERATORS
  */
 export const OPERATORS = {
-  GREATER_THAN: 'greater_than',
-  LESS_THAN: 'less_than',
-  GREATER_THAN_EQUAL: 'greater_than_equal',
-  LESS_THAN_EQUAL: 'less_than_equal',
-  EQUALS: 'equals',
+  GREATER_THAN: "greater_than",
+  LESS_THAN: "less_than",
+  GREATER_THAN_EQUAL: "greater_than_equal",
+  LESS_THAN_EQUAL: "less_than_equal",
+  EQUALS: "equals",
 };
 
-
 /**
- * ACTION TYPES (used by RuleBuilder UI)
+ * ACTION TYPES
  */
 export const ACTION_TYPES = {
   APPROVE: "approve",
@@ -172,30 +170,26 @@ export const ACTION_TYPES = {
 };
 
 /**
- * BACKEND RULE EVALUATION
- * (This replaces frontend evaluation)
+ * ✅ Backend rule evaluation
  */
 export async function evaluateRule(input: any) {
-  return post("/api/engine/evaluate", input);
+  return post("/rules/evaluate", input);
 }
 
-
-
 /**
- * OPTIONAL: UI formatting helpers (KEEP)
+ * UI helpers
  */
 export function formatOperatorLabel(operator: string): string {
   return operator
     .split("_")
-    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+    .map(w => w.charAt(0).toUpperCase() + w.slice(1))
     .join(" ");
 }
 
 export function formatActionTypeLabel(actionType: string): string {
   return actionType
     .split("_")
-    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+    .map(w => w.charAt(0).toUpperCase() + w.slice(1))
     .join(" ");
 }
-
 
