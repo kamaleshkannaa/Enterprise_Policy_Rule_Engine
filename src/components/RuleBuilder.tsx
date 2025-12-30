@@ -1034,15 +1034,18 @@ export default function RuleBuilder({ ruleId, onSave, onCancel }: RuleBuilderPro
 
   // delete condition
   const handleDeleteCondition = async (conditionId: number) => {
-    if (!ruleId) return;
-    try {
-      await apiDeleteCondition(conditionId, Number(ruleId));
-      onSave();
-    } catch (err) {
-      console.error("Error deleting condition:", err);
-      alert("Failed to delete condition");
-    }
-  };
+  if (!ruleId) return;
+
+  try {
+    // ✅ ruleId FIRST, conditionId SECOND
+    await apiDeleteCondition(Number(ruleId), conditionId);
+    onSave(); // refresh rule data
+  } catch (err) {
+    console.error("Error deleting condition:", err);
+    alert("Failed to delete condition");
+  }
+};
+
 
   // add action (stub)
   const handleAddAction = async () => {
