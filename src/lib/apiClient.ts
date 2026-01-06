@@ -124,18 +124,32 @@ const API_BASE = import.meta.env.VITE_API_BASE_URL;
 
 // Generic response handler
 async function handleResponse(res: Response) {
+  const contentType = res.headers.get("content-type");
+
   if (!res.ok) {
-    let error;
-    try {
-      error = await res.json();
-    } catch {
-      error = { message: res.statusText };
+    let error: any = { message: res.statusText };
+
+    if (contentType && contentType.includes("application/json")) {
+      try {
+        error = await res.json();
+      } catch {}
+    } else {
+      const text = await res.text();
+      error = { message: text };
     }
+
     throw error;
   }
-  // assume JSON everywhere except dedicated text handlers
-  return res.json();
+
+  // ✅ Only parse JSON when response is JSON
+  if (contentType && contentType.includes("application/json")) {
+    return res.json();
+  }
+
+  // ✅ For empty / non-JSON responses
+  return null;
 }
+
 
 /* =========================
    GET

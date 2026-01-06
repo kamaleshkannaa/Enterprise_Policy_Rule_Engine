@@ -912,11 +912,15 @@ export default function RuleTester({ mode = "admin" }: RuleTesterProps) {
       const start = performance.now();
 
       // Backend returns plain text (e.g. "Basic Loan Approval")
-      const res = await fetch("http://localhost:8080/api/rules/evaluate", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(conditions),
-      });
+      const res = await fetch(
+  `${import.meta.env.VITE_API_BASE_URL}/api/rules/evaluate`,
+  {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(conditions),
+  }
+);
+
 
       if (!res.ok) {
         throw new Error(`HTTP ${res.status}`);
