@@ -183,6 +183,106 @@
 //   return { stats, loading };
 // }
 
+
+
+// import { useEffect, useState } from "react";
+// import { get } from "../lib/apiClient";
+
+// export type DecisionLog = {
+//   id: number;
+//   decision: string;
+//   matched: boolean;
+//   executionTimeMs: number;
+//   createdAt: string;
+// };
+
+// /** 🔹 Fetch decision logs (admin/global) */
+// export function useDecisionLogs(limit: number = 50) {
+//   const [decisionLogs, setDecisionLogs] = useState<DecisionLog[]>([]);
+//   const [loading, setLoading] = useState(true);
+//   const [error, setError] = useState<string | null>(null);
+
+//   const fetchDecisionLogs = async () => {
+//     try {
+//       setLoading(true);
+//       // NEW: hit /decision-logs instead of /logs
+//       const data = await get<DecisionLog[]>(`/decision-logs?limit=${limit}`);
+//       setDecisionLogs(data);
+//       setError(null);
+//     } catch (err: any) {
+//       setError(err.message);
+//     } finally {
+//       setLoading(false);
+//     }
+//   };
+
+//   useEffect(() => {
+//     fetchDecisionLogs();
+//   }, [limit]);
+
+//   return { decisionLogs, loading, error, fetchDecisionLogs };
+// }
+
+// /** 🔹 Analytics hook used by Analytics.tsx */
+// export function useDecisionStats() {
+//   const [stats, setStats] = useState({
+//     totalDecisions: 0,
+//     matchedDecisions: 0,
+//     avgExecutionTime: 0,
+//     decisionsToday: 0,
+//     matchRate: 0,
+//     totalRules: 0,
+//     activeRules: 0,
+//   });
+//   const [loading, setLoading] = useState(true);
+
+//   useEffect(() => {
+//     // 1) Get aggregated numbers from /analytics
+//     get<any>("/analytics")
+//       .then((payload) => {
+//         setStats((prev) => ({
+//           ...prev,
+//           totalDecisions: payload.totalDecisions ?? 0,
+//           matchedDecisions: payload.matchedDecisions ?? 0,
+//           matchRate: payload.matchRate ?? 0,
+//           totalRules: payload.totalRules ?? 0,
+//           activeRules: payload.activeRules ?? 0,
+//           // keep avgExecutionTime / decisionsToday for step 2
+//           avgExecutionTime: prev.avgExecutionTime,
+//           decisionsToday: prev.decisionsToday,
+//         }));
+//       })
+//       .then(() =>
+//         // 2) Optionally refine avgExecutionTime / decisionsToday from raw logs
+//         get<DecisionLog[]>("/decision-logs")
+//       )
+//       .then((logs) => {
+//         const avg =
+//           logs.reduce(
+//             (s, l: any) =>
+//               s + (l.executionTimeMs ?? l.executionTime ?? 0),
+//             0
+//           ) / (logs.length || 1);
+
+//         const today = new Date();
+//         today.setHours(0, 0, 0, 0);
+//         const todayCount = logs.filter((l) => {
+//           const ts = l.createdAt ?? (l as any).created_at;
+//           return ts && new Date(ts) >= today;
+//         }).length;
+
+//         setStats((prev) => ({
+//           ...prev,
+//           avgExecutionTime: Math.round(avg),
+//           decisionsToday: todayCount,
+//         }));
+//       })
+//       .finally(() => setLoading(false));
+//   }, []);
+
+//   return { stats, loading };
+// }
+
 import { useEffect, useState } from "react";
 import { get } from "../lib/apiClient";
 
@@ -190,11 +290,11 @@ export type DecisionLog = {
   id: number;
   decision: string;
   matched: boolean;
-  executionTimeMs: number;
+  executionTime: number; // ms (matches backend)
   createdAt: string;
 };
 
-/** 🔹 Fetch decision logs (admin/global) */
+/** 🔹 Fetch decision logs */
 export function useDecisionLogs(limit: number = 50) {
   const [decisionLogs, setDecisionLogs] = useState<DecisionLog[]>([]);
   const [loading, setLoading] = useState(true);
@@ -203,12 +303,14 @@ export function useDecisionLogs(limit: number = 50) {
   const fetchDecisionLogs = async () => {
     try {
       setLoading(true);
-      // NEW: hit /decision-logs instead of /logs
-      const data = await get<DecisionLog[]>(`/decision-logs?limit=${limit}`);
-      setDecisionLogs(data);
+
+      // ✅ FIXED: correct backend path
+      const data = await get(`/api/logs?limit=${limit}`);
+
+      setDecisionLogs(data ?? []);
       setError(null);
     } catch (err: any) {
-      setError(err.message);
+      setError(err?.message ?? "Failed to load decision logs");
     } finally {
       setLoading(false);
     }
@@ -221,7 +323,7 @@ export function useDecisionLogs(limit: number = 50) {
   return { decisionLogs, loading, error, fetchDecisionLogs };
 }
 
-/** 🔹 Analytics hook used by Analytics.tsx */
+/** 🔹 Analytics hook */
 export function useDecisionStats() {
   const [stats, setStats] = useState({
     totalDecisions: 0,
@@ -235,9 +337,11 @@ export function useDecisionStats() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // 1) Get aggregated numbers from /analytics
-    get<any>("/analytics")
-      .then((payload) => {
+    let logsCache: DecisionLog[] = [];
+
+    // 1️⃣ Get aggregated analytics
+    get("/api/analytics")
+      .then((payload: any) => {
         setStats((prev) => ({
           ...prev,
           totalDecisions: payload.totalDecisions ?? 0,
@@ -245,35 +349,32 @@ export function useDecisionStats() {
           matchRate: payload.matchRate ?? 0,
           totalRules: payload.totalRules ?? 0,
           activeRules: payload.activeRules ?? 0,
-          // keep avgExecutionTime / decisionsToday for step 2
-          avgExecutionTime: prev.avgExecutionTime,
-          decisionsToday: prev.decisionsToday,
         }));
       })
-      .then(() =>
-        // 2) Optionally refine avgExecutionTime / decisionsToday from raw logs
-        get<DecisionLog[]>("/decision-logs")
-      )
-      .then((logs) => {
-        const avg =
-          logs.reduce(
-            (s, l: any) =>
-              s + (l.executionTimeMs ?? l.executionTime ?? 0),
-            0
-          ) / (logs.length || 1);
+      // 2️⃣ Fetch logs to compute avg execution time & today count
+      .then(() => get("/api/logs"))
+      .then((logs: DecisionLog[]) => {
+        logsCache = logs ?? [];
+
+        const avgExecutionTime =
+          logsCache.reduce((sum, l) => sum + (l.executionTime ?? 0), 0) /
+          (logsCache.length || 1);
 
         const today = new Date();
         today.setHours(0, 0, 0, 0);
-        const todayCount = logs.filter((l) => {
-          const ts = l.createdAt ?? (l as any).created_at;
-          return ts && new Date(ts) >= today;
+
+        const decisionsToday = logsCache.filter((l) => {
+          return l.createdAt && new Date(l.createdAt) >= today;
         }).length;
 
         setStats((prev) => ({
           ...prev,
-          avgExecutionTime: Math.round(avg),
-          decisionsToday: todayCount,
+          avgExecutionTime: Math.round(avgExecutionTime),
+          decisionsToday,
         }));
+      })
+      .catch(() => {
+        // fail silently for analytics
       })
       .finally(() => setLoading(false));
   }, []);
