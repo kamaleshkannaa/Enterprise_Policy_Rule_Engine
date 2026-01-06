@@ -290,11 +290,11 @@ export type DecisionLog = {
   id: number;
   decision: string;
   matched: boolean;
-  executionTime: number; // ms (matches backend)
+  executionTime: number; // ms
   createdAt: string;
 };
 
-/** 🔹 Fetch decision logs */
+/** 🔹 Decision Logs (Admin / Global) */
 export function useDecisionLogs(limit: number = 50) {
   const [decisionLogs, setDecisionLogs] = useState<DecisionLog[]>([]);
   const [loading, setLoading] = useState(true);
@@ -304,8 +304,8 @@ export function useDecisionLogs(limit: number = 50) {
     try {
       setLoading(true);
 
-      // ✅ FIXED: correct backend path
-      const data = await get(`/api/logs?limit=${limit}`);
+      // ✅ MATCHES BACKEND
+      const data = await get(`/api/decision-logs?limit=${limit}`);
 
       setDecisionLogs(data ?? []);
       setError(null);
@@ -323,7 +323,7 @@ export function useDecisionLogs(limit: number = 50) {
   return { decisionLogs, loading, error, fetchDecisionLogs };
 }
 
-/** 🔹 Analytics hook */
+/** 🔹 Analytics & Insights */
 export function useDecisionStats() {
   const [stats, setStats] = useState({
     totalDecisions: 0,
@@ -337,9 +337,7 @@ export function useDecisionStats() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    let logsCache: DecisionLog[] = [];
-
-    // 1️⃣ Get aggregated analytics
+    // 1️⃣ Aggregated analytics
     get("/api/analytics")
       .then((payload: any) => {
         setStats((prev) => ({
@@ -351,30 +349,25 @@ export function useDecisionStats() {
           activeRules: payload.activeRules ?? 0,
         }));
       })
-      // 2️⃣ Fetch logs to compute avg execution time & today count
-      .then(() => get("/api/logs"))
+      // 2️⃣ Raw logs for charts
+      .then(() => get("/api/decision-logs"))
       .then((logs: DecisionLog[]) => {
-        logsCache = logs ?? [];
-
-        const avgExecutionTime =
-          logsCache.reduce((sum, l) => sum + (l.executionTime ?? 0), 0) /
-          (logsCache.length || 1);
+        const avg =
+          logs.reduce((s, l) => s + (l.executionTime ?? 0), 0) /
+          (logs.length || 1);
 
         const today = new Date();
         today.setHours(0, 0, 0, 0);
 
-        const decisionsToday = logsCache.filter((l) => {
-          return l.createdAt && new Date(l.createdAt) >= today;
-        }).length;
+        const todayCount = logs.filter(
+          (l) => l.createdAt && new Date(l.createdAt) >= today
+        ).length;
 
         setStats((prev) => ({
           ...prev,
-          avgExecutionTime: Math.round(avgExecutionTime),
-          decisionsToday,
+          avgExecutionTime: Math.round(avg),
+          decisionsToday: todayCount,
         }));
-      })
-      .catch(() => {
-        // fail silently for analytics
       })
       .finally(() => setLoading(false));
   }, []);
